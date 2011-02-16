@@ -39,6 +39,7 @@ class RobotDemo : public SimpleRobot {
 	DigitalInput lightSensorMiddle;
 	DigitalInput lightSensorRight;
 	DashboardDataSender dds;
+	Gyro lineParallel;
 	int lt_state; //State of the line tracker.
 
 public:
@@ -46,7 +47,7 @@ public:
 		controller1(1), frontRightJag(3), frontLeftJag(2), backRightJag(4),
 				backLeftJag(1), armLiftA(5), armLiftB(6), armDrum(7),
 				lightSensorLeft(1), lightSensorMiddle(2), lightSensorRight(3),
-				dds(), lt_state(LT_FIND_LINE) {
+				dds(), lt_state(LT_FIND_LINE), lineParallel(4) {
 		Watchdog().SetExpiration(.75);
 	}
 
@@ -60,7 +61,7 @@ public:
 		float hori1 = 0;
 		float vert1 = 0;
 		float hori2 = 0;
-		
+
 		float x;
 		float y;
 		float z;
@@ -85,8 +86,7 @@ public:
 				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
 					//Robot has succesfully strafed onto the line.
 					lt_state = LT_DRIVE_FORWARD;
-				} 
-				else {
+				} else {
 					//Robot strafes to get onto line.
 					hori1 = hori1 - .5;
 				}
@@ -97,8 +97,7 @@ public:
 				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
 					//Robot has succesfully gotten onto line.
 					lt_state = LT_DRIVE_FORWARD;
-				}
-				else {
+				} else {
 					//Robot strafes onto line.
 					hori1 = hori1 + .5;
 				}
@@ -111,9 +110,7 @@ public:
 				} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
 					//Robot is slightly to the left of line.
 					lt_state = LT_STRAFE_RIGHT;
-				}
-				else
-				{
+				} else {
 					vert1 = .5;
 				}
 			}
@@ -360,6 +357,8 @@ void OperatorControl(void) {
 	float b; //Front right.
 	float c; //Back left.
 	float d; //Back right.
+	float rotation;
+	lineParallel.Reset();
 
 	while (IsOperatorControl()) {
 		Watchdog().Feed();
@@ -367,6 +366,8 @@ void OperatorControl(void) {
 		float x;
 		float y;
 		float z;
+
+		rotation = lineParallel.GetAngle();
 
 		//Raw joystick inputs.
 		float hori1 = 0;
@@ -388,6 +389,15 @@ void OperatorControl(void) {
 		// Only enabled when button 6 pressed
 		if (controller1.GetRawButton(6)) {
 
+			if (rotation < 0)
+			{
+				hori2 = hori2 + .5;
+			}
+			if (rotation> 0)
+			{
+				hori2 = hori2 - .5;
+			}
+
 			switch (lt_state) {
 				case LT_FIND_LINE: {
 					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
@@ -406,7 +416,7 @@ void OperatorControl(void) {
 					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
 						//Robot has succesfully strafed onto the line.
 						lt_state = LT_DRIVE_FORWARD;
-					} 
+					}
 					else {
 						//Robot strafes to get onto line.
 						hori1 = hori1 - .5;
@@ -453,11 +463,11 @@ void OperatorControl(void) {
 		{
 			switch(lt_state)
 			{
-			default:
+				default:
 				lt_state = LT_FIND_LINE;
 			}
 		}
-		
+
 		//Makes axes easier to understand. Processed inputs for slow acceleration.
 		//Processing x1
 		if (hori1> x) {
@@ -691,7 +701,7 @@ void OperatorControl(void) {
 		{
 			armLiftA.Set(0);
 		}
-		if(controller1.GetRawAxis(6) > 0)
+		if(controller1.GetRawAxis(6)> 0)
 		{
 			armLiftB.Set(.5);
 		}
