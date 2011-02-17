@@ -780,6 +780,9 @@ void OperatorControl(void) {
 				printf("Target found %f ", targets[0].m_score);
 				//targets[0].Print();
 			}
+//todo: Add drive straight forward button on driver stick.
+//todo: Make sure that distance sensor is attached and look over autonomous code to make sure copy is relevant.
+//todo: Make primary arm code and double check secondary arm code.
 		}
 
 	}
