@@ -28,15 +28,19 @@
  */
 
 class RobotDemo : public SimpleRobot {
-	Joystick controller1;
-
+	Joystick driveControl;
+	Joystick armControl;
 	Jaguar frontRightJag;// Mecanum wheels =D
 	Jaguar frontLeftJag;
 	Jaguar backRightJag;
 	Jaguar backLeftJag;
-	Jaguar armLiftA;
-	Jaguar armLiftB;
-	Jaguar armDrum;
+	Compressor compress1;
+	Solenoid backA;
+	Solenoid backB;
+	Solenoid frontA;
+	Solenoid frontB;
+	Solenoid clawA;
+	Solenoid clawB;
 	DigitalInput lightSensorLeft; //Light sensor located at the front.
 	DigitalInput lightSensorMiddle;
 	DigitalInput lightSensorRight;
@@ -46,22 +50,29 @@ class RobotDemo : public SimpleRobot {
 
 public:
 	RobotDemo(void) :
-		controller1(1),
+		driveControl(1),
+		armControl(2),
 		frontRightJag(3),
 		frontLeftJag(2),
 		backRightJag(4),
 		backLeftJag(1),
-		armLiftA(5),
-		armLiftB(6),
-		armDrum(7),
+		compress1(4,1,4,1),
+		backA(1),
+		backB(2),
+		frontA(3),
+		frontB(4),
+		clawA(5),
+		clawB(6),
 		lightSensorLeft(1),
 		lightSensorMiddle(2),
 		lightSensorRight(3),
 		dds(),
-		lt_state(LT_FIND_LINE),
-		lineParallel(1)
+		lineParallel(1),
+		lt_state(LT_FIND_LINE)
+		
 	{
 		Watchdog().SetExpiration(.75);
+		compress1.Start();
 	}
 
 	void Autonomous(void) {
@@ -394,9 +405,9 @@ void OperatorControl(void) {
 		float vert1 = 0;
 		float hori2 = 0;
 
-		hori1 = controller1.GetRawAxis(LEFT_STICK_X);
-		vert1 = controller1.GetRawAxis(LEFT_STICK_Y);
-		hori2 = controller1.GetRawAxis(RIGHT_STICK_X);
+		hori1 = driveControl.GetRawAxis(LEFT_STICK_X);
+		vert1 = driveControl.GetRawAxis(LEFT_STICK_Y);
+		hori2 = driveControl.GetRawAxis(RIGHT_STICK_X);
 
 		// Motor control values
 		a = 0; // front left
@@ -407,11 +418,11 @@ void OperatorControl(void) {
 		// Test line tracking by strafing left and right
 		//and rotating to stay on and parallel with the line.
 		// Only enabled when button 6 pressed
-		if (controller1.GetRawButton(10))
+		if (driveControl.GetRawButton(10))
 		{
 			lineParallel.Reset();
 		}
-		if (controller1.GetRawButton(5))
+		if (driveControl.GetRawButton(5))
 		{
 			if(rotation < 0)
 			{
@@ -423,7 +434,7 @@ void OperatorControl(void) {
 			}
 		}
 		
-		if (controller1.GetRawButton(6)) {
+		if (driveControl.GetRawButton(6)) {
 			printf("%f",hori2);
 			switch (lt_state) {
 				case LT_FIND_LINE: {
@@ -716,72 +727,44 @@ void OperatorControl(void) {
 		backRightJag.Set(d);
 
 		//arm control
-		if(controller1.GetRawButton(2))
+		if(armControl.GetRawButton(1) == 1)
 		{
-			armLiftA.Set(.5);
-		}
-		else if(controller1.GetRawButton(4))
-		{
-			armLiftA.Set(-.5);
+			clawA.Set(true);
+			clawB.Set(false);
 		}
 		else
 		{
-			armLiftA.Set(0);
+			clawA.Set(false);
+			clawB.Set(true);
 		}
-		if(controller1.GetRawAxis(6)> 0)
+		if(armControl.GetRawButton(2) == 1)
 		{
-			armLiftB.Set(.5);
+			backA.Set(true);
+			backB.Set(false);
+			frontA.Set(false);
+			frontB.Set(true);
 		}
-		else if(controller1.GetRawAxis(6) < 0)
+		if(armControl.GetRawButton(3) == 1)
 		{
-			armLiftB.Set(-.5);
+			backA.Set(true);
+			backB.Set(false);
+			frontA.Set(true);
+			frontB.Set(false);
 		}
-		else
+		if(armControl.GetRawButton(4) == 1)
 		{
-			armLiftB.Set(0);
+			backA.Set(true);
+			backB.Set(false);
+			frontA.Set(true);
+			frontB.Set(false);
 		}
-		// TODO: camera testing
-		if (camera.IsFreshImage()) {
-			// get the camera image
-			HSLImage *image = camera.GetImage();
-
-			double gyroAngle = 0.0;
-			// find FRC targets in the image
-			vector<Target> targets = Target::FindCircularTargets(image);
-			delete image;
-			if (targets.size() == 0 || targets[0].m_score < MINIMUM_SCORE)
-			{
-				// no targets found. Make sure the first one in the list is 0,0
-				// since the dashboard program annotates the first target in green
-				// and the others in magenta. With no qualified targets, they'll all
-				// be magenta.
-				Target nullTarget;
-				nullTarget.m_majorRadius = 0.0;
-				nullTarget.m_minorRadius = 0.0;
-				nullTarget.m_score = 0.0;
-				if (targets.size() == 0)
-				targets.push_back(nullTarget);
-				else
-				targets.insert(targets.begin(), nullTarget);
-				dds.sendVisionData(0.0, gyroAngle, 0.0, 0.0, targets);
-				if (targets.size() == 0)
-				printf("No target found\n\n");
-				else
-				printf("No valid targets found, best score: %f ", targets[0].m_score);
-			}
-			else {
-				// We have some targets.
-				// set the new PID heading setpoint to the first target in the list
-				//double horizontalAngle = targets[0].GetHorizontalAngle();
-				//double setPoint = gyroAngle + horizontalAngle;
-
-				// send dashbaord data for target tracking
-				dds.sendVisionData(0.0, gyroAngle, 0.0, targets[0].m_xPos / targets[0].m_xMax, targets);
-				printf("Target found %f ", targets[0].m_score);
-				//targets[0].Print();
-			}
+		if(armControl.GetRawButton(2) == 1)
+		{
+			backA.Set(false);
+			backB.Set(true);
+			frontA.Set(true);
+			frontB.Set(false);
 		}
-
 	}
 } // end OperatorControl()
 };
