@@ -46,10 +46,21 @@ class RobotDemo : public SimpleRobot {
 
 public:
 	RobotDemo(void) :
-		controller1(1), frontRightJag(3), frontLeftJag(2), backRightJag(4),
-				backLeftJag(1), armLiftA(5), armLiftB(6), armDrum(7),
-				lightSensorLeft(1), lightSensorMiddle(2), lightSensorRight(3),
-				dds(), lt_state(LT_FIND_LINE), lineParallel(1) {
+		controller1(1),
+		frontRightJag(3),
+		frontLeftJag(2),
+		backRightJag(4),
+		backLeftJag(1),
+		armLiftA(5),
+		armLiftB(6),
+		armDrum(7),
+		lightSensorLeft(1),
+		lightSensorMiddle(2),
+		lightSensorRight(3),
+		dds(),
+		lt_state(LT_FIND_LINE),
+		lineParallel(1)
+	{
 		Watchdog().SetExpiration(.75);
 	}
 
@@ -370,7 +381,14 @@ void OperatorControl(void) {
 		float z;
 
 		rotation = fmod(lineParallel.GetAngle(),360.0) ;
-
+		if (rotation>180)
+		{
+			rotation-=360;
+		}
+		else if (rotation<-180)
+		{
+			rotation+=360;
+		}
 		//Raw joystick inputs.
 		float hori1 = 0;
 		float vert1 = 0;
@@ -391,15 +409,31 @@ void OperatorControl(void) {
 		// Only enabled when button 6 pressed
 		if (controller1.GetRawButton(6)) {
 
-			if (rotation < 10)
+			/*if (rotation < 0)
 			{
-				hori2 = hori2 + .25;
+				hori2 = hori2 + 1.0*(rotation / 360.0);
 			}
-			if (rotation > 10)
+			if (rotation > 0)
 			{
-				hori2 = hori2 - .25;
+				hori2 = hori2 - 1.0*(rotation / 360.0);
+			}*/
+			if (rotation < -10 && rotation > -30)
+			{
+				hori2 = hori2 + 0.3;
 			}
-
+			else if (rotation > 10 && rotation < 30)
+			{
+				hori2 = hori2 - 0.3;
+			}
+			if (rotation < -30 && rotation > -128)
+			{
+				hori2 = hori2 + 0.6;
+			}
+			else if (rotation > 30 && rotation < 128)
+			{
+				hori2 = hori2 - 0.6;
+			}
+			printf("%f",hori2);
 			switch (lt_state) {
 				case LT_FIND_LINE: {
 					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
@@ -489,9 +523,9 @@ void OperatorControl(void) {
 		}
 		//Prossesing x2
 		if (hori2> z) {
-			//z = z + .0005;
+			z = z + .0005;
 		} else if (hori2 < z) {
-			//z = z - .0005;
+			z = z - .0005;
 		} else {
 			z = hori2;
 		}
