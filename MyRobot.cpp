@@ -407,32 +407,23 @@ void OperatorControl(void) {
 		// Test line tracking by strafing left and right
 		//and rotating to stay on and parallel with the line.
 		// Only enabled when button 6 pressed
+		if (controller1.GetRawButton(10))
+		{
+			lineParallel.Reset();
+		}
+		if (controller1.GetRawButton(5))
+		{
+			if(rotation < 0)
+			{
+				hori2 += -.20 + .55 * (rotation / 360);
+			}
+			if(rotation > 0)
+			{
+				hori2 += .20 +.55 * (rotation / 360);
+			}
+		}
+		
 		if (controller1.GetRawButton(6)) {
-
-			/*if (rotation < 0)
-			{
-				hori2 = hori2 + 1.0*(rotation / 360.0);
-			}
-			if (rotation > 0)
-			{
-				hori2 = hori2 - 1.0*(rotation / 360.0);
-			}*/
-			if (rotation < -10 && rotation > -30)
-			{
-				hori2 = hori2 + 0.3;
-			}
-			else if (rotation > 10 && rotation < 30)
-			{
-				hori2 = hori2 - 0.3;
-			}
-			if (rotation < -30 && rotation > -128)
-			{
-				hori2 = hori2 + 0.6;
-			}
-			else if (rotation > 30 && rotation < 128)
-			{
-				hori2 = hori2 - 0.6;
-			}
 			printf("%f",hori2);
 			switch (lt_state) {
 				case LT_FIND_LINE: {
