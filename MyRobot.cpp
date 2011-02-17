@@ -710,6 +710,15 @@ void OperatorControl(void) {
 				d = (-(y*y)-(z*z))/(-y+z);
 			}
 		}
+		
+		//For minibot deployment.
+		if (driveControl.GetRawButton(4) == 1)
+		{
+			a = .4;
+			b = -.4;
+			c = .4;
+			d = -.4;
+		}
 
 		// Send the control values to the motor controllers
 		frontLeftJag.Set(a);
@@ -782,7 +791,6 @@ void OperatorControl(void) {
 				printf("Target found %f ", targets[0].m_score);
 				//targets[0].Print();
 			}
-//todo: Add drive straight forward button on driver stick.
 //todo: Make sure that distance sensor is attached and look over autonomous code to make sure copy is relevant.
 //todo: Make primary arm code and double check secondary arm code.
 		}
