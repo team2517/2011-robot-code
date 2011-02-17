@@ -28,7 +28,8 @@
  */
 
 class RobotDemo : public SimpleRobot {
-	Joystick controller1;
+	Joystick driveControl;
+	Joystick armControl;
 
 	Jaguar frontRightJag;// Mecanum wheels =D
 	Jaguar frontLeftJag;
@@ -46,7 +47,8 @@ class RobotDemo : public SimpleRobot {
 
 public:
 	RobotDemo(void) :
-		controller1(1),
+		driveControl(1),
+		armControl(2),
 		frontRightJag(3),
 		frontLeftJag(2),
 		backRightJag(4),
@@ -394,9 +396,9 @@ void OperatorControl(void) {
 		float vert1 = 0;
 		float hori2 = 0;
 
-		hori1 = controller1.GetRawAxis(LEFT_STICK_X);
-		vert1 = controller1.GetRawAxis(LEFT_STICK_Y);
-		hori2 = controller1.GetRawAxis(RIGHT_STICK_X);
+		hori1 = driveControl.GetRawAxis(LEFT_STICK_X);
+		vert1 = driveControl.GetRawAxis(LEFT_STICK_Y);
+		hori2 = driveControl.GetRawAxis(RIGHT_STICK_X);
 
 		// Motor control values
 		a = 0; // front left
@@ -407,11 +409,11 @@ void OperatorControl(void) {
 		// Test line tracking by strafing left and right
 		//and rotating to stay on and parallel with the line.
 		// Only enabled when button 6 pressed
-		if (controller1.GetRawButton(10))
+		if (driveControl.GetRawButton(10))
 		{
 			lineParallel.Reset();
 		}
-		if (controller1.GetRawButton(5))
+		if (driveControl.GetRawButton(5))
 		{
 			if(rotation < 0)
 			{
@@ -423,7 +425,7 @@ void OperatorControl(void) {
 			}
 		}
 		
-		if (controller1.GetRawButton(6)) {
+		if (driveControl.GetRawButton(6)) {
 			printf("%f",hori2);
 			switch (lt_state) {
 				case LT_FIND_LINE: {
@@ -716,11 +718,11 @@ void OperatorControl(void) {
 		backRightJag.Set(d);
 
 		//arm control
-		if(controller1.GetRawButton(2))
+		if(armControl.GetRawButton(2))
 		{
 			armLiftA.Set(.5);
 		}
-		else if(controller1.GetRawButton(4))
+		else if(armControl.GetRawButton(4))
 		{
 			armLiftA.Set(-.5);
 		}
@@ -728,11 +730,11 @@ void OperatorControl(void) {
 		{
 			armLiftA.Set(0);
 		}
-		if(controller1.GetRawAxis(6)> 0)
+		if(armControl.GetRawAxis(6)> 0)
 		{
 			armLiftB.Set(.5);
 		}
-		else if(controller1.GetRawAxis(6) < 0)
+		else if(armControl.GetRawAxis(6) < 0)
 		{
 			armLiftB.Set(-.5);
 		}
