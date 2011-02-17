@@ -758,12 +758,58 @@ void OperatorControl(void) {
 			frontA.Set(true);
 			frontB.Set(false);
 		}
+<<<<<<< HEAD
 		if(armControl.GetRawButton(2) == 1)
 		{
 			backA.Set(false);
 			backB.Set(true);
 			frontA.Set(true);
 			frontB.Set(false);
+=======
+		// TODO: camera testing
+		if (camera.IsFreshImage()) {
+			// get the camera image
+			HSLImage *image = camera.GetImage();
+
+			double gyroAngle = 0.0;
+			// find FRC targets in the image
+			vector<Target> targets = Target::FindCircularTargets(image);
+			delete image;
+			if (targets.size() == 0 || targets[0].m_score < MINIMUM_SCORE)
+			{
+				// no targets found. Make sure the first one in the list is 0,0
+				// since the dashboard program annotates the first target in green
+				// and the others in magenta. With no qualified targets, they'll all
+				// be magenta.
+				Target nullTarget;
+				nullTarget.m_majorRadius = 0.0;
+				nullTarget.m_minorRadius = 0.0;
+				nullTarget.m_score = 0.0;
+				if (targets.size() == 0)
+				targets.push_back(nullTarget);
+				else
+				targets.insert(targets.begin(), nullTarget);
+				dds.sendVisionData(0.0, gyroAngle, 0.0, 0.0, targets);
+				if (targets.size() == 0)
+				printf("No target found\n\n");
+				else
+				printf("No valid targets found, best score: %f ", targets[0].m_score);
+			}
+			else {
+				// We have some targets.
+				// set the new PID heading setpoint to the first target in the list
+				//double horizontalAngle = targets[0].GetHorizontalAngle();
+				//double setPoint = gyroAngle + horizontalAngle;
+
+				// send dashbaord data for target tracking
+				dds.sendVisionData(0.0, gyroAngle, 0.0, targets[0].m_xPos / targets[0].m_xMax, targets);
+				printf("Target found %f ", targets[0].m_score);
+				//targets[0].Print();
+			}
+//todo: Add drive straight forward button on driver stick.
+//todo: Make sure that distance sensor is attached and look over autonomous code to make sure copy is relevant.
+//todo: Make primary arm code and double check secondary arm code.
+>>>>>>> a91a726540683ed1bd10f5fc1d2092d0e7e2af66
 		}
 	}
 } // end OperatorControl()
