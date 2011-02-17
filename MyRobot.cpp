@@ -2,6 +2,8 @@
 #include "Target.h"
 #include "DashboardDataSender.h"
 
+#include <math.h>
+
 // Line light sensor constants
 #define SENSOR_SEES_LINE 	true
 #define SENSOR_NO_LINE		false
@@ -47,7 +49,7 @@ public:
 		controller1(1), frontRightJag(3), frontLeftJag(2), backRightJag(4),
 				backLeftJag(1), armLiftA(5), armLiftB(6), armDrum(7),
 				lightSensorLeft(1), lightSensorMiddle(2), lightSensorRight(3),
-				dds(), lt_state(LT_FIND_LINE), lineParallel(4) {
+				dds(), lt_state(LT_FIND_LINE), lineParallel(1) {
 		Watchdog().SetExpiration(.75);
 	}
 
@@ -367,7 +369,7 @@ void OperatorControl(void) {
 		float y;
 		float z;
 
-		rotation = lineParallel.GetAngle();
+		rotation = fmod(lineParallel.GetAngle(),360.0) ;
 
 		//Raw joystick inputs.
 		float hori1 = 0;
@@ -389,13 +391,13 @@ void OperatorControl(void) {
 		// Only enabled when button 6 pressed
 		if (controller1.GetRawButton(6)) {
 
-			if (rotation < 0)
+			if (rotation < 10)
 			{
-				hori2 = hori2 + .5;
+				hori2 = hori2 + .25;
 			}
-			if (rotation> 0)
+			if (rotation > 10)
 			{
-				hori2 = hori2 - .5;
+				hori2 = hori2 - .25;
 			}
 
 			switch (lt_state) {
@@ -487,9 +489,9 @@ void OperatorControl(void) {
 		}
 		//Prossesing x2
 		if (hori2> z) {
-			z = z + .0005;
+			//z = z + .0005;
 		} else if (hori2 < z) {
-			z = z - .0005;
+			//z = z - .0005;
 		} else {
 			z = hori2;
 		}
