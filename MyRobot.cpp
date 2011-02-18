@@ -37,7 +37,7 @@ class RobotDemo : public SimpleRobot {
 	Jaguar backLeftJag;
 	Jaguar armLiftA;
 	Jaguar armLiftB;
-	Jaguar armDrum;
+	Victor armDrum;
 	DigitalInput lightSensorLeft; //Light sensor located at the front.
 	DigitalInput lightSensorMiddle;
 	DigitalInput lightSensorRight;
