@@ -85,7 +85,7 @@ public:
 		float z;
 
 		//While distance > value
-		while (wallSensor.GetRangeMM() < 1000) {
+		while (wallSensor.GetRangeMM() > 500) {
 			switch (lt_state) {
 			case LT_FIND_LINE: {
 				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
@@ -97,6 +97,10 @@ public:
 				} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
 					//Robot is parllel, but slightly to the left of line.
 					lt_state = LT_STRAFE_RIGHT;
+				}
+				else 
+				{
+					hori1 += .5;
 				}
 			}
 				break;
@@ -350,6 +354,10 @@ public:
 		}
 
 	}
+		frontLeftJag.Set(a);
+		frontRightJag.Set(b);
+		backLeftJag.Set(c);
+		backRightJag.Set(d);
 
 			//todo: Arm code here.
 
