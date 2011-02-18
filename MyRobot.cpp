@@ -43,6 +43,7 @@ class RobotDemo : public SimpleRobot {
 	DigitalInput lightSensorRight;
 	DashboardDataSender dds;
 	Gyro lineParallel;
+	Ultrasonic wallSensor;
 	int lt_state; //State of the line tracker.
 
 public:
@@ -61,9 +62,11 @@ public:
 		lightSensorRight(3),
 		dds(),
 		lt_state(LT_FIND_LINE),
-		lineParallel(1)
+		lineParallel(1),
+		wallSensor(5,4)
 	{
 		Watchdog().SetExpiration(.75);
+		wallSensor.SetAutomaticMode(true);
 	}
 
 	void Autonomous(void) {
@@ -82,7 +85,7 @@ public:
 		float z;
 
 		//While distance > value
-		while (true) {
+		while (wallSensor.GetRangeMM() < 1000) {
 			switch (lt_state) {
 			case LT_FIND_LINE: {
 				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
@@ -348,16 +351,14 @@ public:
 
 	}
 
-	//close loop
-	// stop when close enough
-	// maybe use vision or digital/analog infrared sensor
-	// place tube
-	// turn around to be ready to retrieve new tube
+			//todo: Arm code here.
+
 }
 
 void OperatorControl(void) {
 
 	Watchdog().SetEnabled(true);
+	wallSensor.SetEnabled(true);
 
 	printf("Getting camera instance\n");
 	AxisCamera &camera = AxisCamera::GetInstance();
@@ -409,6 +410,10 @@ void OperatorControl(void) {
 		// Test line tracking by strafing left and right
 		//and rotating to stay on and parallel with the line.
 		// Only enabled when button 6 pressed
+		if (driveControl.GetRawButton(9) == 1)
+		{
+			printf("%f\n",wallSensor.GetRangeMM());
+		}
 		if (driveControl.GetRawButton(10))
 		{
 			lineParallel.Reset();
@@ -751,53 +756,12 @@ void OperatorControl(void) {
 		{
 			armLiftB.Set(0);
 		}
-		// TODO: camera testing
-		if (camera.IsFreshImage()) {
-			// get the camera image
-			HSLImage *image = camera.GetImage();
-
-			double gyroAngle = 0.0;
-			// find FRC targets in the image
-			vector<Target> targets = Target::FindCircularTargets(image);
-			delete image;
-			if (targets.size() == 0 || targets[0].m_score < MINIMUM_SCORE)
-			{
-				// no targets found. Make sure the first one in the list is 0,0
-				// since the dashboard program annotates the first target in green
-				// and the others in magenta. With no qualified targets, they'll all
-				// be magenta.
-				Target nullTarget;
-				nullTarget.m_majorRadius = 0.0;
-				nullTarget.m_minorRadius = 0.0;
-				nullTarget.m_score = 0.0;
-				if (targets.size() == 0)
-				targets.push_back(nullTarget);
-				else
-				targets.insert(targets.begin(), nullTarget);
-				dds.sendVisionData(0.0, gyroAngle, 0.0, 0.0, targets);
-				if (targets.size() == 0)
-				printf("No target found\n\n");
-				else
-				printf("No valid targets found, best score: %f ", targets[0].m_score);
-			}
-			else {
-				// We have some targets.
-				// set the new PID heading setpoint to the first target in the list
-				//double horizontalAngle = targets[0].GetHorizontalAngle();
-				//double setPoint = gyroAngle + horizontalAngle;
-
-				// send dashbaord data for target tracking
-				dds.sendVisionData(0.0, gyroAngle, 0.0, targets[0].m_xPos / targets[0].m_xMax, targets);
-				printf("Target found %f ", targets[0].m_score);
-				//targets[0].Print();
-			}
-//todo: Make sure that distance sensor is attached and look over autonomous code to make sure copy is relevant.
-//todo: Make primary arm code and double check secondary arm code.
+//todo: Make primary arm code.
 		}
 
 	}
-} // end OperatorControl()
-};
+}; // end OperatorControl()
+
 
 START_ROBOT_CLASS(RobotDemo)
 ;
