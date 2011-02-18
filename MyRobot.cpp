@@ -425,27 +425,21 @@ public:
 		if(armControl.GetRawButton(2))
 		{
 			armLiftA.Set(.5);
+			armLiftB.Set(-.5);
 		}
-		else if(armControl.GetRawButton(4))
+		else if(armControl.GetRawButton(3))
 		{
 			armLiftA.Set(-.5);
+			armLiftB.Set(.5);
+			
 		}
 		else
 		{
 			armLiftA.Set(0);
-		}
-		if(armControl.GetRawAxis(6)> 0)
-		{
-			armLiftB.Set(.5);
-		}
-		else if(armControl.GetRawAxis(6) < 0)
-		{
-			armLiftB.Set(-.5);
-		}
-		else
-		{
 			armLiftB.Set(0);
 		}
+		
+		armDrum.Set(armControl.GetRawAxis(1));
 		//todo: Make primary arm code.
 	}
 
