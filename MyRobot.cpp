@@ -70,6 +70,12 @@ public:
 	}
 
 	void Autonomous(void) {
+frontLeftJag.Set(.3);
+frontRightJag.Set(-.3);
+backLeftJag.Set(.3);
+backRightJag.Set(-.3)
+
+
 
 			}
 
