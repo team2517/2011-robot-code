@@ -392,6 +392,10 @@ void OperatorControl(void) {
 	float rotation;
 	lineParallel.Reset();
 
+	float hori1 = 0;
+	float vert1 = 0;
+	float hori2 = 0;
+
 	while (IsOperatorControl()) {
 		Watchdog().Feed();
 
@@ -406,9 +410,6 @@ void OperatorControl(void) {
 			rotation+=360;
 		}
 		//Raw joystick inputs.
-		float hori1 = 0;
-		float vert1 = 0;
-		float hori2 = 0;
 
 		hori1 = driveControl.GetRawAxis(LEFT_STICK_X);
 		vert1 = driveControl.GetRawAxis(LEFT_STICK_Y);
@@ -429,6 +430,7 @@ void OperatorControl(void) {
 		if (driveControl.GetRawButton(10)) {
 			lineParallel.Reset();
 		}
+
 		if (driveControl.GetRawButton(5)) {
 			if (rotation < 0) {
 				hori2 += -.20 + .55 * (rotation / 360);
@@ -439,7 +441,6 @@ void OperatorControl(void) {
 		}
 
 		if (driveControl.GetRawButton(6)) {
-			printf("%f", hori2);
 			switch (lt_state) {
 				case LT_FIND_LINE: {
 					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
@@ -731,8 +732,11 @@ void OperatorControl(void) {
 		backLeftJag.Set(c);
 		backRightJag.Set(d);
 
+		printf("%f\n",hori2);
+		//printf("%f\n",z);
+		
 		//Minibot Deployment.
-		if (armControl.GetRawButton(6) == 1)
+		if (armControl.GetRawButton(6))
 		{
 			miniA.Set(true);
 			miniB.Set(false);
