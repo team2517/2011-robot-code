@@ -58,6 +58,7 @@ public:
 	}
 
 	void Autonomous(void) {
+
 		float a = 0;
 		float b = 0;
 		float c = 0;
@@ -77,7 +78,7 @@ public:
 		printf("%f\n", wallSensor.GetRangeMM());
 		while (wallSensor.GetRangeMM() > 500) {
 			printf("%f\n", wallSensor.GetRangeMM());
-
+			
 			hori1 = 0;
 			vert1 = 0;
 			hori2 = 0;
@@ -86,7 +87,8 @@ public:
 			b = 0;
 			c = 0;
 			d = 0;
-
+			
+			
 			rotation = fmod(lineParallel.GetAngle(), 360.0);
 			if (rotation>180) {
 				rotation-=360;
@@ -103,64 +105,66 @@ public:
 				}
 			}
 
-			switch (lt_state) {
-			case LT_FIND_LINE: {
-				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-					//Robot is on and parallel to line.
-					lt_state = LT_DRIVE_FORWARD;
-				} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
-					//Robot is parallel, but slightly to the right of line.
-					lt_state = LT_STRAFE_LEFT;
-				} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
-					//Robot is parllel, but slightly to the left of line.
-					lt_state = LT_STRAFE_RIGHT;
+				switch (lt_state) {
+				case LT_FIND_LINE: {
+					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+						//Robot is on and parallel to line.
+						lt_state = LT_DRIVE_FORWARD;
+					} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+						//Robot is parallel, but slightly to the right of line.
+						lt_state = LT_STRAFE_LEFT;
+					} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
+						//Robot is parllel, but slightly to the left of line.
+						lt_state = LT_STRAFE_RIGHT;
+					}
+					
+				}
+					break;
+				case LT_STRAFE_LEFT: {
+					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+						//Robot has succesfully strafed onto the line.
+						lt_state = LT_DRIVE_FORWARD;
+					} else {
+						//Robot strafes to get onto line.
+						hori1 = hori1 - .3;
+						vert1 -= .3;
+					}
 				}
 
-			}
-				break;
-			case LT_STRAFE_LEFT: {
-				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-					//Robot has succesfully strafed onto the line.
-					lt_state = LT_DRIVE_FORWARD;
-				} else {
-					//Robot strafes to get onto line.
-					hori1 = hori1 - .3;
-					vert1 -= .3;
+					break;
+				case LT_STRAFE_RIGHT: {
+					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+						//Robot has succesfully gotten onto line.
+						lt_state = LT_DRIVE_FORWARD;
+					} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+						lt_state = LT_STRAFE_LEFT;
+					} else {
+						//Robot strafes onto line.
+						hori1 = hori1 + .3;
+						vert1 -=.3;
+					}
 				}
-			}
-
-				break;
-			case LT_STRAFE_RIGHT: {
-				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-					//Robot has succesfully gotten onto line.
-					lt_state = LT_DRIVE_FORWARD;
-				} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
-					lt_state = LT_STRAFE_LEFT;
-				} else {
-					//Robot strafes onto line.
-					hori1 = hori1 + .3;
-					vert1 -=.3;
+					break;
+				case LT_DRIVE_FORWARD: {
+					if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+						//Robot is slightly to the right of line.
+						lt_state = LT_STRAFE_LEFT;
+					} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
+						//Robot is slightly to the left of line.
+						lt_state = LT_STRAFE_RIGHT;
+					}
+					
+					else
+					{
+						vert1 -= .3;
+					}
 				}
-			}
-				break;
-			case LT_DRIVE_FORWARD: {
-				if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
-					//Robot is slightly to the right of line.
-					lt_state = LT_STRAFE_LEFT;
-				} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
-					//Robot is slightly to the left of line.
-					lt_state = LT_STRAFE_RIGHT;
-				}
-
-				else {
-					vert1 -= .3;
-				}
-			}
-				break;
-			default:
-				lt_state = LT_FIND_LINE;
+					break;
+				default:
+					lt_state = LT_FIND_LINE;
 
 			}
+
 
 			//Makes axes easier to understand. Processed inputs for slow acceleration.
 			//Processing x1
@@ -232,7 +236,7 @@ public:
 					d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
 				}
 				//Back Left Quadrant
-			} else if (x < 0 && y> 0){
+			} else if (x < 0 && y> 0){ 
 
 			if (z> 0) {
 				a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
@@ -363,463 +367,10 @@ public:
 		backRightJag.Set(d);
 
 	}
-	frontLeftJag.Set(0);
-	frontRightJag.Set(0);
-	backLeftJag.Set(0);
-	backRightJag.Set(0);
-}
-
-void OperatorControl(void) {
-
-	Watchdog().SetEnabled(true);
-	wallSensor.SetEnabled(true);
-
-	printf("Getting camera instance\n");
-	AxisCamera &camera = AxisCamera::GetInstance();
-	/**axis1	= x on left stick
-	 ***axis2	= y on left stick
-	 ***axis3	= x on right stick
-	 ***axis4	= y on right stick
-	 **/
-
-	//Creates values for motors
-	float a; //Front left.
-	float b; //Front right.
-	float c; //Back left.
-	float d; //Back right.
-	float rotation;
-	lineParallel.Reset();
-
-	while (IsOperatorControl()) {
-		Watchdog().Feed();
-
-		float x;
-		float y;
-		float z;
-
-		rotation = fmod(lineParallel.GetAngle(), 360.0);
-		=======
-		float a = 0;
-		float b = 0;
-		float c = 0;
-		float d = 0;
-
-		float rotation = 0;
-		lineParallel.Reset();
-
-		float x;
-		float y;
-		float z;
-
-		float hori1 = 0;
-		float vert1 = 0;
-		float hori2 = 0;
-
-		printf("%f\n", wallSensor.GetRangeMM());
-		while (wallSensor.GetRangeMM()> 500) {
-			printf("%f\n", wallSensor.GetRangeMM());
-
-			hori1 = 0;
-			vert1 = 0;
-			hori2 = 0;
-
-			a = 0;
-			b = 0;
-			c = 0;
-			d = 0;
-
-			rotation = fmod(lineParallel.GetAngle(), 360.0);
-			>>>>>>> autonomous
-			if (rotation>180) {
-				rotation-=360;
-			} else if (rotation<-180) {
-				rotation+=360;
-			}
-			<<<<<<< HEAD
-			//Raw joystick inputs.
-			float hori1 = 0;
-			float vert1 = 0;
-			float hori2 = 0;
-
-			hori1 = driveControl.GetRawAxis(LEFT_STICK_X);
-			vert1 = driveControl.GetRawAxis(LEFT_STICK_Y);
-			hori2 = driveControl.GetRawAxis(RIGHT_STICK_X);
-
-			// Motor control values
-			a = 0; // front left
-			b = 0; // front right
-			c = 0; // back left
-			d = 0; // back right
-
-			// Test line tracking by strafing left and right
-			//and rotating to stay on and parallel with the line.
-			// Only enabled when button 6 pressed
-			if (driveControl.GetRawButton(9) == 1) {
-				printf("%f\n", wallSensor.GetRangeMM());
-			}
-			if (driveControl.GetRawButton(10)) {
-				lineParallel.Reset();
-			}
-			=======
-
-			>>>>>>> autonomous
-			if (driveControl.GetRawButton(5)) {
-				if (rotation < 0) {
-					hori2 += -.20 + .55 * (rotation / 360);
-				}
-				<<<<<<< HEAD
-				if (rotation> 0) {
-					=======
-					if (rotation> 0) {
-						>>>>>>> autonomous
-						hori2 += .20 +.55 * (rotation / 360);
-					}
-				}
-
-				<<<<<<< HEAD
-				if (driveControl.GetRawButton(6)) {
-					printf("%f", hori2);
-					=======
-					>>>>>>> autonomous
-					switch (lt_state) {
-						case LT_FIND_LINE: {
-							if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-								//Robot is on and parallel to line.
-								lt_state = LT_DRIVE_FORWARD;
-							} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
-								//Robot is parallel, but slightly to the right of line.
-								lt_state = LT_STRAFE_LEFT;
-							} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
-								//Robot is parllel, but slightly to the left of line.
-								lt_state = LT_STRAFE_RIGHT;
-							}
-							<<<<<<< HEAD
-							=======
-
-							>>>>>>> autonomous
-						}
-						break;
-						case LT_STRAFE_LEFT: {
-							if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-								//Robot has succesfully strafed onto the line.
-								lt_state = LT_DRIVE_FORWARD;
-							} else {
-								//Robot strafes to get onto line.
-								<<<<<<< HEAD
-								hori1 = hori1 - .5;
-							}
-						}
-
-						break;
-						case LT_STRAFE_RIGHT: {
-							if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-								//Robot has succesfully gotten onto line.
-								lt_state = LT_DRIVE_FORWARD;
-							} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
-								lt_state = LT_STRAFE_LEFT;
-							} else {
-								//Robot strafes onto line.
-								hori1 = hori1 + .5;
-							}
-						}
-						break;
-						case LT_DRIVE_FORWARD: {
-							if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
-								//Robot is slightly to the right of line.
-								lt_state = LT_STRAFE_LEFT;
-							} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
-								//Robot is slightly to the left of line.
-								lt_state = LT_STRAFE_RIGHT;
-							} else if (lightSensorMiddle.Get() == SENSOR_NO_LINE) {
-								lt_state = LT_STRAFE_RIGHT;
-							}
-						}
-						break;
-						default:
-						lt_state = LT_FIND_LINE;
-					}
-
-				}
-
-				else {
-					switch (lt_state) {
-						default:
-						lt_state = LT_FIND_LINE;
-					}
-				}
-
-				//Makes axes easier to understand. Processed inputs for slow acceleration.
-				//Processing x1
-				if (hori1> x) {
-					x = x + .0005;
-				} else if (hori1 < x) {
-					x = x - .0005;
-				} else {
-					x = hori1;
-				}
-				//Prossesing y1
-				if (vert1> y) {
-					y = y + .0005;
-				} else if (vert1 < y) {
-					y = y - .0005;
-				} else {
-					y = vert1;
-				}
-				//Prossesing x2
-				if (hori2> z) {
-					z = z + .0005;
-				} else if (hori2 < z) {
-					z = z - .0005;
-				} else {
-					z = hori2;
-					=======
-					hori1 = hori1 - .3;
-					vert1 -= .3;
-				}
-			}
-
-			break;
-			case LT_STRAFE_RIGHT: {
-				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-					//Robot has succesfully gotten onto line.
-					lt_state = LT_DRIVE_FORWARD;
-				} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
-					lt_state = LT_STRAFE_LEFT;
-				} else {
-					//Robot strafes onto line.
-					hori1 = hori1 + .3;
-					vert1 -=.3;
-				}
-			}
-			break;
-			case LT_DRIVE_FORWARD: {
-				if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
-					//Robot is slightly to the right of line.
-					lt_state = LT_STRAFE_LEFT;
-				} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
-					//Robot is slightly to the left of line.
-					lt_state = LT_STRAFE_RIGHT;
-				}
-
-				else
-				{
-					vert1 -= .3;
-				}
-			}
-			break;
-			default:
-			lt_state = LT_FIND_LINE;
-
-			>>>>>>> autonomous
-		}
-
-		//Makes axes easier to understand. Processed inputs for slow acceleration.
-		//Processing x1
-		x = hori1;
-		y = vert1;
-		z = hori2;
-
-		// Calculate motor control values based on joystick input
-		//Upper Left Quadrant
-		if (x < 0 && y < 0) {
-			if (z> 0) {
-				a = (-(x*x)+(y*y)+(z*z))/(-x-y+z);
-				b = (-(x*x)-(y*y)+(z*z))/(-x-y+z);
-				c = ((x*x)+(y*y)+(z*z))/(-x-y+z);
-				d = ((x*x)-(y*y)+(z*z))/(-x-y+z);
-			} else if (z < 0) {
-				a = (-(x*x)+(y*y)-(z*z))/(-x-y-z);
-				b = (-(x*x)-(y*y)-(z*z))/(-x-y-z);
-				c = ((x*x)+(y*y)-(z*z))/(-x-y-z);
-				d = ((x*x)-(y*y)-(z*z))/(-x-y-z);
-			} else {
-				a = (-(x*x)+(y*y)+(z*z))/(-x-y+z);
-				b = (-(x*x)-(y*y)+(z*z))/(-x-y+z);
-				c = ((x*x)+(y*y)+(z*z))/(-x-y+z);
-				d = ((x*x)-(y*y)+(z*z))/(-x-y+z);
-			}
-			//Upper Right Quadrant
-		} else if (x> 0 && y < 0) {
-
-			if (z> 0) {
-				a = ((x*x)+(y*y)+(z*z)) / (x-y+z);
-				b = ((x*x)-(y*y)+(z*z)) / (x-y+z);
-				c = (-(x*x)+(y*y)+(z*z)) / (x-y+z);
-				d = (-(x*x)-(y*y)+(z*z)) / (x-y+z);
-			}
-
-			else if (z < 0) {
-				a = ((x*x)+(y*y)-(z*z)) / (x-y-z);
-				b = ((x*x)-(y*y)-(z*z)) / (x-y-z);
-				c = (-(x*x)+(y*y)-(z*z)) / (x-y-z);
-				d = (-(x*x)-(y*y)-(z*z)) / (x-y-z);
-			}
-
-			else {
-				a = ((x*x)+(y*y)-(z*z)) / (x-y+z);
-				b = ((x*x)-(y*y)-(z*z)) / (x-y+z);
-				c = (-(x*x)+(y*y)-(z*z)) / (x-y+z);
-				d = (-(x*x)-(y*y)-(z*z)) / (x-y+z);
-			}
-			//Back Right Quadrant
-		} else if (x> 0 && y> 0) {
-
-			if (z> 0) {
-				a = ((x*x)-(y*y)+(z*z))/(x+y+z);
-				b = ((x*x)+(y*y)+(z*z))/(x+y+z);
-				c = (-(x*x)-(y*y)+(z*z))/(x+y+z);
-				d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
-			}
-
-			else if (z < 0) {
-				a = ((x*x)-(y*y)-(z*z))/(x+y-z);
-				b = ((x*x)+(y*y)-(z*z))/(x+y-z);
-				c = (-(x*x)-(y*y)-(z*z))/(x+y-z);
-				d = (-(x*x)+(y*y)-(z*z))/(x+y-z);
-			} else {
-				a = ((x*x)-(y*y)+(z*z))/(x+y+z);
-				b = ((x*x)+(y*y)+(z*z))/(x+y+z);
-				c = (-(x*x)-(y*y)+(z*z))/(x+y+z);
-				d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
-			}
-			//Back Left Quadrant
-		} else if (x < 0 && y> 0) {
-
-			if (z> 0) {
-				a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
-				b = (-(x*x)+(y*y)+(z*z))/(-x+y+z);
-				c = ((x*x)-(y*y)+(z*z))/(-x+y+z);
-				d = ((x*x)+(y*y)+(z*z))/(-x+y+z);
-			}
-
-			else if (z < 0) {
-				a = (-(x*x)-(y*y)-(z*z))/(-x+y-z);
-				b = (-(x*x)+(y*y)-(z*z))/(-x+y-z);
-				c = ((x*x)-(y*y)-(z*z))/(-x+y-z);
-				d = ((x*x)+(y*y)-(z*z))/(-x+y-z);
-			}
-			else
-			{
-				a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
-				b = (-(x*x)+(y*y)+(z*z))/(-x+y+z);
-				c = ((x*x)-(y*y)+(z*z))/(-x+y+z);
-				d = ((x*x)+(y*y)+(z*z))/(-x+y+z);
-			}
-		}
-		//Strafe Right
-		else if (x> 0 && y == 0)
-		{
-			if(z> 0)
-			{
-				a = ((x*x)+(z*z))/(x+z);
-				b = ((x*x)+(z*z))/(x+z);
-				c = (-(x*x)+(z*z))/(x+z);
-				d = (-(x*x)+(z*z))/(x+z);
-			}
-			else if(z < 0)
-			{
-				a = ((x*x)-(z*z))/(x-z);
-				b = ((x*x)-(z*z))/(x-z);
-				c = (-(x*x)-(z*z))/(x-z);
-				d = (-(x*x)-(z*z))/(x-z);
-			}
-			else
-			{
-				a = ((x*x)+(z*z))/(x+z);
-				b = ((x*x)+(z*z))/(x+z);
-				c = (-(x*x)+(z*z))/(x+z);
-				d = (-(x*x)+(z*z))/(x+z);
-			}
-		}
-		//Strafe Left
-		else if (x < 0 && y == 0)
-		{
-			if(z> 0)
-			{
-				a = (-(x*x)+(z*z))/(-x+z);
-				b = (-(x*x)+(z*z))/(-x+z);
-				c = ((x*x)+(z*z))/(-x+z);
-				d = ((x*x)+(z*z))/(-x+z);
-			}
-			else if(z < 0)
-			{
-				a = (-(x*x)-(z*z))/(-x-z);
-				b = (-(x*x)-(z*z))/(-x-z);
-				c = ((x*x)-(z*z))/(-x-z);
-				d = ((x*x)-(z*z))/(-x-z);
-			}
-			else
-			{
-				a = (-(x*x)+(z*z))/(-x+z);
-				b = (-(x*x)+(z*z))/(-x+z);
-				c = ((x*x)+(z*z))/(-x+z);
-				d = ((x*x)+(z*z))/(-x+z);
-			}
-		}
-		//Backward
-		else if(y> 0 && x == 0)
-		{
-			if (z> 0)
-			{
-				a = (-(y*y)+(z*z))/(y+z);
-				b = ((y*y)+(z*z))/(y+z);
-				c = (-(y*y)+(z*z))/(y+z);
-				d = ((y*y)+(z*z))/(y+z);
-			}
-			else if (z < 0)
-			{
-				a = (-(y*y)-(z*z))/(y-z);
-				b = ((y*y)-(z*z))/(y-z);
-				c = (-(y*y)-(z*z))/(y-z);
-				d = ((y*y)-(z*z))/(y-z);
-			}
-			else
-			{
-				a = (-(y*y)+(z*z))/(y+z);
-				b = ((y*y)+(z*z))/(y+z);
-				c = (-(y*y)+(z*z))/(y+z);
-				d = ((y*y)+(z*z))/(y+z);
-			}
-		}
-		//Forward
-		else if (y < 0 && x == 0)
-		{
-			if (z> 0)
-			{
-				a = ((y*y)+(z*z))/(-y+z);
-				b = (-(y*y)+(z*z))/(-y+z);
-				c = ((y*y)+(z*z))/(-y+z);
-				d = (-(y*y)+(z*z))/(-y+z);
-			}
-			else if (z < 0)
-			{
-				a = ((y*y)-(z*z))/(-y-z);
-				b = (-(y*y)-(z*z))/(-y-z);
-				c = ((y*y)-(z*z))/(-y-z);
-				d = (-(y*y)-(z*z))/(-y-z);
-			}
-			else
-			{
-				a = ((y*y)-(z*z))/(-y+z);
-				b = (-(y*y)-(z*z))/(-y+z);
-				c = ((y*y)-(z*z))/(-y+z);
-				d = (-(y*y)-(z*z))/(-y+z);
-			}
-		}
-
-		<<<<<<< HEAD
-		=======
-		// Send the control values to the motor controllers
-		frontLeftJag.Set(a);
-		frontRightJag.Set(b);
-		backLeftJag.Set(c);
-		backRightJag.Set(d);
-
-	}
-	frontLeftJag.Set(0);
-	frontRightJag.Set(0);
-	backLeftJag.Set(0);
-	backRightJag.Set(0);
+		frontLeftJag.Set(0);
+		frontRightJag.Set(0);
+		backLeftJag.Set(0);
+		backRightJag.Set(0);
 
 }
 
@@ -1171,7 +722,6 @@ void OperatorControl(void) {
 			}
 		}
 
-		>>>>>>> autonomous
 		//For minibot deployment.
 		if (driveControl.GetRawButton(4) == 1)
 		{
@@ -1188,30 +738,7 @@ void OperatorControl(void) {
 		backRightJag.Set(d);
 
 		//arm control
-		if(armControl.GetRawButton(2))
-		{
-			armLiftA.Set(.5);
-		}
-		else if(armControl.GetRawButton(4))
-		{
-			armLiftA.Set(-.5);
-		}
-		else
-		{
-			armLiftA.Set(0);
-		}
-		if(armControl.GetRawAxis(6)> 0)
-		{
-			armLiftB.Set(.5);
-		}
-		else if(armControl.GetRawAxis(6) < 0)
-		{
-			armLiftB.Set(-.5);
-		}
-		else
-		{
-			armLiftB.Set(0);
-		}
+
 		//todo: Make primary arm code.
 	}
 
