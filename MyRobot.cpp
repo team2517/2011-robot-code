@@ -75,7 +75,7 @@ public:
 		float vert1 = 0;
 		float hori2 = 0;
 
-
+		printf("%f\n", wallSensor.GetRangeMM());
 		while (wallSensor.GetRangeMM() > 500) {
 			printf("%f\n", wallSensor.GetRangeMM());
 			
@@ -95,7 +95,7 @@ public:
 			} else if (rotation<-180) {
 				rotation+=360;
 			}
-/*
+
 			if (driveControl.GetRawButton(5)) {
 				if (rotation < 0) {
 					hori2 += -.20 + .55 * (rotation / 360);
@@ -104,7 +104,7 @@ public:
 					hori2 += .20 +.55 * (rotation / 360);
 				}
 			}
-*/
+
 				switch (lt_state) {
 				case LT_FIND_LINE: {
 					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
@@ -127,6 +127,7 @@ public:
 					} else {
 						//Robot strafes to get onto line.
 						hori1 = hori1 - .3;
+						vert1 -= .3;
 					}
 				}
 
@@ -140,6 +141,7 @@ public:
 					} else {
 						//Robot strafes onto line.
 						hori1 = hori1 + .3;
+						vert1 -=.3;
 					}
 				}
 					break;
@@ -154,7 +156,7 @@ public:
 					
 					else
 					{
-						vert1 += .3;
+						vert1 -= .3;
 					}
 				}
 					break;
@@ -365,6 +367,10 @@ public:
 		backRightJag.Set(d);
 
 	}
+		frontLeftJag.Set(0);
+		frontRightJag.Set(0);
+		backLeftJag.Set(0);
+		backRightJag.Set(0);
 
 }
 
