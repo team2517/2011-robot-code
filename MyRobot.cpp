@@ -230,7 +230,7 @@ public:
 					d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
 				}
 				//Back Left Quadrant
-			} else if (x < 0 && y> 0){ 
+			} else if (x < 0 && y> 0){
 
 			if (z> 0) {
 				a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
@@ -751,6 +751,7 @@ void OperatorControl(void) {
 
 		}
 
+		printf("%f\n",driveControl.GetRawAxis(1));
 		//arm control
 
 
