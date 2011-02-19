@@ -75,7 +75,7 @@ public:
 		float hori2 = 0;
 
 		printf("%f\n", wallSensor.GetRangeMM());
-		while (wallSensor.GetRangeMM() > 500) {
+		while (wallSensor.GetRangeMM()> 500) {
 			printf("%f\n", wallSensor.GetRangeMM());
 
 			hori1 = 0;
@@ -122,8 +122,8 @@ public:
 					lt_state = LT_DRIVE_FORWARD;
 				} else {
 					//Robot strafes to get onto line.
-					hori1 = hori1 - .3;
-					vert1 -= .3;
+					hori1 = hori1 - .5;
+					vert1 -= .5;
 				}
 			}
 
@@ -136,8 +136,8 @@ public:
 					lt_state = LT_STRAFE_LEFT;
 				} else {
 					//Robot strafes onto line.
-					hori1 = hori1 + .3;
-					vert1 -=.3;
+					hori1 = hori1 + .5;
+					vert1 -=.5;
 				}
 			}
 				break;
@@ -151,7 +151,7 @@ public:
 				}
 
 				else {
-					vert1 -= .3;
+					vert1 -= .5;
 				}
 			}
 				break;
@@ -230,7 +230,7 @@ public:
 					d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
 				}
 				//Back Left Quadrant
-			} else if (x < 0 && y> 0){
+			} else if (x < 0 && y> 0){ 
 
 			if (z> 0) {
 				a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
@@ -374,7 +374,6 @@ public:
 void OperatorControl(void) {
 
 	Watchdog().SetEnabled(true);
-	wallSensor.SetEnabled(true);
 
 	printf("Getting camera instance\n");
 	AxisCamera &camera = AxisCamera::GetInstance();
@@ -392,10 +391,6 @@ void OperatorControl(void) {
 	float rotation;
 	lineParallel.Reset();
 
-	float hori1 = 0;
-	float vert1 = 0;
-	float hori2 = 0;
-
 	while (IsOperatorControl()) {
 		Watchdog().Feed();
 
@@ -403,13 +398,19 @@ void OperatorControl(void) {
 		float y;
 		float z;
 
-		rotation = fmod(lineParallel.GetAngle(), 360.0);
-		if (rotation>180) {
+		rotation = fmod(lineParallel.GetAngle(),360.0);
+		if (rotation>180)
+		{
 			rotation-=360;
-		} else if (rotation<-180) {
+		}
+		else if (rotation<-180)
+		{
 			rotation+=360;
 		}
 		//Raw joystick inputs.
+		float hori1 = 0;
+		float vert1 = 0;
+		float hori2 = 0;
 
 		hori1 = driveControl.GetRawAxis(LEFT_STICK_X);
 		vert1 = driveControl.GetRawAxis(LEFT_STICK_Y);
@@ -424,23 +425,24 @@ void OperatorControl(void) {
 		// Test line tracking by strafing left and right
 		//and rotating to stay on and parallel with the line.
 		// Only enabled when button 6 pressed
-		if (driveControl.GetRawButton(9) == 1) {
-			printf("%f\n", wallSensor.GetRangeMM());
-		}
-		if (driveControl.GetRawButton(10)) {
+		if (driveControl.GetRawButton(10))
+		{
 			lineParallel.Reset();
 		}
-
-		if (driveControl.GetRawButton(5)) {
-			if (rotation < 0) {
+		if (driveControl.GetRawButton(5))
+		{
+			if(rotation < 0)
+			{
 				hori2 += -.20 + .55 * (rotation / 360);
 			}
-			if (rotation> 0) {
+			if(rotation> 0)
+			{
 				hori2 += .20 +.55 * (rotation / 360);
 			}
 		}
 
 		if (driveControl.GetRawButton(6)) {
+			printf("%f",hori2);
 			switch (lt_state) {
 				case LT_FIND_LINE: {
 					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
@@ -459,7 +461,8 @@ void OperatorControl(void) {
 					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
 						//Robot has succesfully strafed onto the line.
 						lt_state = LT_DRIVE_FORWARD;
-					} else {
+					}
+					else {
 						//Robot strafes to get onto line.
 						hori1 = hori1 - .5;
 					}
@@ -470,9 +473,12 @@ void OperatorControl(void) {
 					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
 						//Robot has succesfully gotten onto line.
 						lt_state = LT_DRIVE_FORWARD;
-					} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+					}
+					else if (lightSensorLeft.Get() == SENSOR_SEES_LINE)
+					{
 						lt_state = LT_STRAFE_LEFT;
-					} else {
+					}
+					else {
 						//Robot strafes onto line.
 						hori1 = hori1 + .5;
 					}
@@ -485,7 +491,9 @@ void OperatorControl(void) {
 					} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
 						//Robot is slightly to the left of line.
 						lt_state = LT_STRAFE_RIGHT;
-					} else if (lightSensorMiddle.Get() == SENSOR_NO_LINE) {
+					}
+					else if (lightSensorMiddle.Get() == SENSOR_NO_LINE)
+					{
 						lt_state = LT_STRAFE_RIGHT;
 					}
 				}
@@ -496,8 +504,10 @@ void OperatorControl(void) {
 
 		}
 
-		else {
-			switch (lt_state) {
+		else
+		{
+			switch(lt_state)
+			{
 				default:
 				lt_state = LT_FIND_LINE;
 			}
@@ -717,13 +727,12 @@ void OperatorControl(void) {
 			}
 		}
 
-		//For minibot deployment.
-		if (driveControl.GetRawButton(4) == 1)
+		if (driveControl.GetRawButton(4))
 		{
-			a = .4;
-			b = -.4;
-			c = .4;
-			d = -.4;
+			a = -.4;
+			b = .4;
+			c = -.4;
+			d = .4;
 		}
 
 		// Send the control values to the motor controllers
@@ -732,20 +741,23 @@ void OperatorControl(void) {
 		backLeftJag.Set(c);
 		backRightJag.Set(d);
 
-		printf("%f\n",hori2);
-		//printf("%f\n",z);
-		
-		//Minibot Deployment.
-		if (armControl.GetRawButton(6))
+		//Minibot Deployment
+
+		if(armControl.GetRawButton(6))
 		{
-			miniA.Set(true);
-			miniB.Set(false);
+
+			miniA.Set(false);
+			miniB.Set(true);
+
 		}
 
-		//todo: Make primary arm code.
+		//arm control
+
+
 	}
 
 }
+
 }; // end OperatorControl()
 
 
