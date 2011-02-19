@@ -35,9 +35,8 @@ class RobotDemo : public SimpleRobot {
 	Jaguar frontLeftJag;
 	Jaguar backRightJag;
 	Jaguar backLeftJag;
-	Jaguar armLiftA;
-	Jaguar armLiftB;
-	Jaguar armDrum;
+	Solenoid miniA;
+	Solenoid miniB;
 	DigitalInput lightSensorLeft; //Light sensor located at the front.
 	DigitalInput lightSensorMiddle;
 	DigitalInput lightSensorRight;
@@ -49,10 +48,10 @@ class RobotDemo : public SimpleRobot {
 public:
 	RobotDemo(void) :
 		driveControl(1), armControl(2), frontRightJag(3), frontLeftJag(2),
-				backRightJag(4), backLeftJag(1), armLiftA(5), armLiftB(6),
-				armDrum(7), lightSensorLeft(1), lightSensorMiddle(2),
-				lightSensorRight(3), dds(), lt_state(LT_FIND_LINE),
-				lineParallel(1), wallSensor(5, 4) {
+				backRightJag(4), backLeftJag(1), lightSensorLeft(1),
+				lightSensorMiddle(2), lightSensorRight(3), dds(),
+				lt_state(LT_FIND_LINE), lineParallel(1), wallSensor(5, 4),
+				miniA(1), miniB(2) {
 		Watchdog().SetExpiration(.75);
 		wallSensor.SetAutomaticMode(true);
 	}
@@ -732,7 +731,12 @@ void OperatorControl(void) {
 		backLeftJag.Set(c);
 		backRightJag.Set(d);
 
-		//arm control
+		//Minibot Deployment.
+		if (armControl.GetRawButton(6) == 1)
+		{
+			miniA.Set(true);
+			miniB.Set(false);
+		}
 
 		//todo: Make primary arm code.
 	}
