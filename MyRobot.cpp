@@ -35,12 +35,12 @@ class RobotDemo : public SimpleRobot {
 	Jaguar backRightJag;
 	Jaguar backLeftJag;
 	Compressor compress1;
-	Solenoid backA;
-	Solenoid backB;
-	Solenoid frontA;
-	Solenoid frontB;
-	Solenoid clawA;
-	Solenoid clawB;
+	Solenoid liftA;
+	Solenoid liftB;
+	Solenoid elbowA;
+	Solenoid elbowB;
+	Solenoid clampA;
+	Solenoid clampB;
 	DigitalInput lightSensorLeft; //Light sensor located at the front.
 	DigitalInput lightSensorMiddle;
 	DigitalInput lightSensorRight;
@@ -50,25 +50,11 @@ class RobotDemo : public SimpleRobot {
 
 public:
 	RobotDemo(void) :
-	driveControl(1),
-	armControl(2),
-	frontRightJag(3),
-	frontLeftJag(2),
-	backRightJag(4),
-	backLeftJag(1),
-	compress1(4,1,4,1),
-	backA(1),
-	backB(2),
-	frontA(3),
-	frontB(4),
-	clawA(5),
-	clawB(6),
-	lightSensorLeft(1),
-	lightSensorMiddle(2),
-	lightSensorRight(3),
-	dds(),
-	lineParallel(1),
-	lt_state(LT_FIND_LINE)
+		driveControl(1), armControl(2), frontRightJag(3), frontLeftJag(2),
+				backRightJag(4), backLeftJag(1), compress1(4, 1, 4, 1),
+				liftA(1), liftB(2), elbowA(3), elbowB(4), clampA(5), clampB(6),
+				lightSensorLeft(1), lightSensorMiddle(2), lightSensorRight(3),
+				dds(), lineParallel(1), lt_state(LT_FIND_LINE)
 
 	{
 		Watchdog().SetExpiration(.75);
@@ -93,53 +79,53 @@ public:
 		//While distance > value
 		while (true) {
 			switch (lt_state) {
-				case LT_FIND_LINE: {
-					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-						//Robot is on and parallel to line.
-						lt_state = LT_DRIVE_FORWARD;
-					} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
-						//Robot is parallel, but slightly to the right of line.
-						lt_state = LT_STRAFE_LEFT;
-					} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
-						//Robot is parllel, but slightly to the left of line.
-						lt_state = LT_STRAFE_RIGHT;
-					}
+			case LT_FIND_LINE: {
+				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+					//Robot is on and parallel to line.
+					lt_state = LT_DRIVE_FORWARD;
+				} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+					//Robot is parallel, but slightly to the right of line.
+					lt_state = LT_STRAFE_LEFT;
+				} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
+					//Robot is parllel, but slightly to the left of line.
+					lt_state = LT_STRAFE_RIGHT;
 				}
+			}
 				break;
-				case LT_STRAFE_LEFT: {
-					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-						//Robot has succesfully strafed onto the line.
-						lt_state = LT_DRIVE_FORWARD;
-					} else {
-						//Robot strafes to get onto line.
-						hori1 = hori1 - .5;
-					}
+			case LT_STRAFE_LEFT: {
+				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+					//Robot has succesfully strafed onto the line.
+					lt_state = LT_DRIVE_FORWARD;
+				} else {
+					//Robot strafes to get onto line.
+					hori1 = hori1 - .5;
 				}
+			}
 
 				break;
-				case LT_STRAFE_RIGHT: {
-					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-						//Robot has succesfully gotten onto line.
-						lt_state = LT_DRIVE_FORWARD;
-					} else {
-						//Robot strafes onto line.
-						hori1 = hori1 + .5;
-					}
+			case LT_STRAFE_RIGHT: {
+				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+					//Robot has succesfully gotten onto line.
+					lt_state = LT_DRIVE_FORWARD;
+				} else {
+					//Robot strafes onto line.
+					hori1 = hori1 + .5;
 				}
+			}
 				break;
-				case LT_DRIVE_FORWARD: {
-					if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
-						//Robot is slightly to the right of line.
-						lt_state = LT_STRAFE_LEFT;
-					} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
-						//Robot is slightly to the left of line.
-						lt_state = LT_STRAFE_RIGHT;
-					} else {
-						vert1 = .5;
-					}
+			case LT_DRIVE_FORWARD: {
+				if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+					//Robot is slightly to the right of line.
+					lt_state = LT_STRAFE_LEFT;
+				} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
+					//Robot is slightly to the left of line.
+					lt_state = LT_STRAFE_RIGHT;
+				} else {
+					vert1 = .5;
 				}
+			}
 				break;
-				default:
+			default:
 				lt_state = LT_FIND_LINE;
 			}
 
@@ -231,546 +217,540 @@ public:
 					d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
 				}
 				//Back Left Quadrant
-			} else if (x < 0 && y> 0) {
+			} else if (x < 0 && y> 0){
 
-				if (z> 0) {
-					a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
-					b = (-(x*x)+(y*y)+(z*z))/(-x+y+z);
-					c = ((x*x)-(y*y)+(z*z))/(-x+y+z);
-					d = ((x*x)+(y*y)+(z*z))/(-x+y+z);
-				}
-
-				else if (z < 0) {
-					a = (-(x*x)-(y*y)-(z*z))/(-x+y-z);
-					b = (-(x*x)+(y*y)-(z*z))/(-x+y-z);
-					c = ((x*x)-(y*y)-(z*z))/(-x+y-z);
-					d = ((x*x)+(y*y)-(z*z))/(-x+y-z);
-				}
-				else
-				{
-					a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
-					b = (-(x*x)+(y*y)+(z*z))/(-x+y+z);
-					c = ((x*x)-(y*y)+(z*z))/(-x+y+z);
-					d = ((x*x)+(y*y)+(z*z))/(-x+y+z);
-				}
-			}
-			//Strafe Right
-			else if (x> 0 && y == 0)
-			{
-				if(z> 0)
-				{
-					a = ((x*x)+(z*z))/(x+z);
-					b = ((x*x)+(z*z))/(x+z);
-					c = (-(x*x)+(z*z))/(x+z);
-					d = (-(x*x)+(z*z))/(x+z);
-				}
-				else if(z < 0)
-				{
-					a = ((x*x)-(z*z))/(x-z);
-					b = ((x*x)-(z*z))/(x-z);
-					c = (-(x*x)-(z*z))/(x-z);
-					d = (-(x*x)-(z*z))/(x-z);
-				}
-				else
-				{
-					a = ((x*x)+(z*z))/(x+z);
-					b = ((x*x)+(z*z))/(x+z);
-					c = (-(x*x)+(z*z))/(x+z);
-					d = (-(x*x)+(z*z))/(x+z);
-				}
-			}
-			//Strafe Left
-			else if (x < 0 && y == 0)
-			{
-				if(z> 0)
-				{
-					a = (-(x*x)+(z*z))/(-x+z);
-					b = (-(x*x)+(z*z))/(-x+z);
-					c = ((x*x)+(z*z))/(-x+z);
-					d = ((x*x)+(z*z))/(-x+z);
-				}
-				else if(z < 0)
-				{
-					a = (-(x*x)-(z*z))/(-x-z);
-					b = (-(x*x)-(z*z))/(-x-z);
-					c = ((x*x)-(z*z))/(-x-z);
-					d = ((x*x)-(z*z))/(-x-z);
-				}
-				else
-				{
-					a = (-(x*x)+(z*z))/(-x+z);
-					b = (-(x*x)+(z*z))/(-x+z);
-					c = ((x*x)+(z*z))/(-x+z);
-					d = ((x*x)+(z*z))/(-x+z);
-				}
-			}
-			//Backward
-			else if(y> 0 && x == 0)
-			{
-				if (z> 0)
-				{
-					a = (-(y*y)+(z*z))/(y+z);
-					b = ((y*y)+(z*z))/(y+z);
-					c = (-(y*y)+(z*z))/(y+z);
-					d = ((y*y)+(z*z))/(y+z);
-				}
-				else if (z < 0)
-				{
-					a = (-(y*y)-(z*z))/(y-z);
-					b = ((y*y)-(z*z))/(y-z);
-					c = (-(y*y)-(z*z))/(y-z);
-					d = ((y*y)-(z*z))/(y-z);
-				}
-				else
-				{
-					a = (-(y*y)+(z*z))/(y+z);
-					b = ((y*y)+(z*z))/(y+z);
-					c = (-(y*y)+(z*z))/(y+z);
-					d = ((y*y)+(z*z))/(y+z);
-				}
-			}
-			//Forward
-			else if (y < 0 && x == 0)
-			{
-				if (z> 0)
-				{
-					a = ((y*y)+(z*z))/(-y+z);
-					b = (-(y*y)+(z*z))/(-y+z);
-					c = ((y*y)+(z*z))/(-y+z);
-					d = (-(y*y)+(z*z))/(-y+z);
-				}
-				else if (z < 0)
-				{
-					a = ((y*y)-(z*z))/(-y-z);
-					b = (-(y*y)-(z*z))/(-y-z);
-					c = ((y*y)-(z*z))/(-y-z);
-					d = (-(y*y)-(z*z))/(-y-z);
-				}
-				else
-				{
-					a = ((y*y)-(z*z))/(-y+z);
-					b = (-(y*y)-(z*z))/(-y+z);
-					c = ((y*y)-(z*z))/(-y+z);
-					d = (-(y*y)-(z*z))/(-y+z);
-				}
+			if (z> 0) {
+				a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
+				b = (-(x*x)+(y*y)+(z*z))/(-x+y+z);
+				c = ((x*x)-(y*y)+(z*z))/(-x+y+z);
+				d = ((x*x)+(y*y)+(z*z))/(-x+y+z);
 			}
 
+			else if (z < 0) {
+				a = (-(x*x)-(y*y)-(z*z))/(-x+y-z);
+				b = (-(x*x)+(y*y)-(z*z))/(-x+y-z);
+				c = ((x*x)-(y*y)-(z*z))/(-x+y-z);
+				d = ((x*x)+(y*y)-(z*z))/(-x+y-z);
+			}
+			else
+			{
+				a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
+				b = (-(x*x)+(y*y)+(z*z))/(-x+y+z);
+				c = ((x*x)-(y*y)+(z*z))/(-x+y+z);
+				d = ((x*x)+(y*y)+(z*z))/(-x+y+z);
+			}
+		}
+		//Strafe Right
+		else if (x> 0 && y == 0)
+		{
+			if(z> 0)
+			{
+				a = ((x*x)+(z*z))/(x+z);
+				b = ((x*x)+(z*z))/(x+z);
+				c = (-(x*x)+(z*z))/(x+z);
+				d = (-(x*x)+(z*z))/(x+z);
+			}
+			else if(z < 0)
+			{
+				a = ((x*x)-(z*z))/(x-z);
+				b = ((x*x)-(z*z))/(x-z);
+				c = (-(x*x)-(z*z))/(x-z);
+				d = (-(x*x)-(z*z))/(x-z);
+			}
+			else
+			{
+				a = ((x*x)+(z*z))/(x+z);
+				b = ((x*x)+(z*z))/(x+z);
+				c = (-(x*x)+(z*z))/(x+z);
+				d = (-(x*x)+(z*z))/(x+z);
+			}
+		}
+		//Strafe Left
+		else if (x < 0 && y == 0)
+		{
+			if(z> 0)
+			{
+				a = (-(x*x)+(z*z))/(-x+z);
+				b = (-(x*x)+(z*z))/(-x+z);
+				c = ((x*x)+(z*z))/(-x+z);
+				d = ((x*x)+(z*z))/(-x+z);
+			}
+			else if(z < 0)
+			{
+				a = (-(x*x)-(z*z))/(-x-z);
+				b = (-(x*x)-(z*z))/(-x-z);
+				c = ((x*x)-(z*z))/(-x-z);
+				d = ((x*x)-(z*z))/(-x-z);
+			}
+			else
+			{
+				a = (-(x*x)+(z*z))/(-x+z);
+				b = (-(x*x)+(z*z))/(-x+z);
+				c = ((x*x)+(z*z))/(-x+z);
+				d = ((x*x)+(z*z))/(-x+z);
+			}
+		}
+		//Backward
+		else if(y> 0 && x == 0)
+		{
+			if (z> 0)
+			{
+				a = (-(y*y)+(z*z))/(y+z);
+				b = ((y*y)+(z*z))/(y+z);
+				c = (-(y*y)+(z*z))/(y+z);
+				d = ((y*y)+(z*z))/(y+z);
+			}
+			else if (z < 0)
+			{
+				a = (-(y*y)-(z*z))/(y-z);
+				b = ((y*y)-(z*z))/(y-z);
+				c = (-(y*y)-(z*z))/(y-z);
+				d = ((y*y)-(z*z))/(y-z);
+			}
+			else
+			{
+				a = (-(y*y)+(z*z))/(y+z);
+				b = ((y*y)+(z*z))/(y+z);
+				c = (-(y*y)+(z*z))/(y+z);
+				d = ((y*y)+(z*z))/(y+z);
+			}
+		}
+		//Forward
+		else if (y < 0 && x == 0)
+		{
+			if (z> 0)
+			{
+				a = ((y*y)+(z*z))/(-y+z);
+				b = (-(y*y)+(z*z))/(-y+z);
+				c = ((y*y)+(z*z))/(-y+z);
+				d = (-(y*y)+(z*z))/(-y+z);
+			}
+			else if (z < 0)
+			{
+				a = ((y*y)-(z*z))/(-y-z);
+				b = (-(y*y)-(z*z))/(-y-z);
+				c = ((y*y)-(z*z))/(-y-z);
+				d = (-(y*y)-(z*z))/(-y-z);
+			}
+			else
+			{
+				a = ((y*y)-(z*z))/(-y+z);
+				b = (-(y*y)-(z*z))/(-y+z);
+				c = ((y*y)-(z*z))/(-y+z);
+				d = (-(y*y)-(z*z))/(-y+z);
+			}
 		}
 
-		//close loop
-		// stop when close enough
-		// maybe use vision or digital/analog infrared sensor
-		// place tube
-		// turn around to be ready to retrieve new tube
 	}
 
-	void OperatorControl(void) {
+	//close loop
+	// stop when close enough
+	// maybe use vision or digital/analog infrared sensor
+	// place tube
+	// turn around to be ready to retrieve new tube
+}
 
-		Watchdog().SetEnabled(true);
+void OperatorControl(void) {
 
-		printf("Getting camera instance\n");
-		AxisCamera &camera = AxisCamera::GetInstance();
-		/**axis1	= x on left stick
-		 ***axis2	= y on left stick
-		 ***axis3	= x on right stick
-		 ***axis4	= y on right stick
-		 **/
+	Watchdog().SetEnabled(true);
 
-		//Creates values for motors
-		float a; //Front left.
-		float b; //Front right.
-		float c; //Back left.
-		float d; //Back right.
-		float rotation;
-		lineParallel.Reset();
+	printf("Getting camera instance\n");
+	AxisCamera &camera = AxisCamera::GetInstance();
+	/**axis1	= x on left stick
+	 ***axis2	= y on left stick
+	 ***axis3	= x on right stick
+	 ***axis4	= y on right stick
+	 **/
 
-		while (IsOperatorControl()) {
-			Watchdog().Feed();
+	//Creates values for motors
+	float a; //Front left.
+	float b; //Front right.
+	float c; //Back left.
+	float d; //Back right.
+	float rotation;
+	lineParallel.Reset();
 
-			float x;
-			float y;
-			float z;
+	while (IsOperatorControl()) {
+		Watchdog().Feed();
 
-			rotation = fmod(lineParallel.GetAngle(),360.0);
-			if (rotation>180)
+		float x;
+		float y;
+		float z;
+
+		rotation = fmod(lineParallel.GetAngle(),360.0);
+		if (rotation>180)
+		{
+			rotation-=360;
+		}
+		else if (rotation<-180)
+		{
+			rotation+=360;
+		}
+		//Raw joystick inputs.
+		float hori1 = 0;
+		float vert1 = 0;
+		float hori2 = 0;
+
+		hori1 = driveControl.GetRawAxis(LEFT_STICK_X);
+		vert1 = driveControl.GetRawAxis(LEFT_STICK_Y);
+		hori2 = driveControl.GetRawAxis(RIGHT_STICK_X);
+
+		// Motor control values
+		a = 0; // front left
+		b = 0; // front right
+		c = 0; // back left
+		d = 0; // back right
+
+		// Test line tracking by strafing left and right
+		//and rotating to stay on and parallel with the line.
+		// Only enabled when button 6 pressed
+		if (driveControl.GetRawButton(10))
+		{
+			lineParallel.Reset();
+		}
+		if (driveControl.GetRawButton(5))
+		{
+			if(rotation < 0)
 			{
-				rotation-=360;
+				hori2 += -.20 + .55 * (rotation / 360);
 			}
-			else if (rotation<-180)
+			if(rotation> 0)
 			{
-				rotation+=360;
-			}
-			//Raw joystick inputs.
-			float hori1 = 0;
-			float vert1 = 0;
-			float hori2 = 0;
-
-			hori1 = driveControl.GetRawAxis(LEFT_STICK_X);
-			vert1 = driveControl.GetRawAxis(LEFT_STICK_Y);
-			hori2 = driveControl.GetRawAxis(RIGHT_STICK_X);
-
-			// Motor control values
-			a = 0; // front left
-			b = 0; // front right
-			c = 0; // back left
-			d = 0; // back right
-
-			// Test line tracking by strafing left and right
-			//and rotating to stay on and parallel with the line.
-			// Only enabled when button 6 pressed
-			if (driveControl.GetRawButton(10))
-			{
-				lineParallel.Reset();
-			}
-			if (driveControl.GetRawButton(5))
-			{
-				if(rotation < 0)
-				{
-					hori2 += -.20 + .55 * (rotation / 360);
-				}
-				if(rotation> 0)
-				{
-					hori2 += .20 +.55 * (rotation / 360);
-				}
-			}
-
-			if (driveControl.GetRawButton(6)) {
-				printf("%f",hori2);
-				switch (lt_state) {
-					case LT_FIND_LINE: {
-						if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-							//Robot is on and parallel to line.
-							lt_state = LT_DRIVE_FORWARD;
-						} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
-							//Robot is parallel, but slightly to the right of line.
-							lt_state = LT_STRAFE_LEFT;
-						} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
-							//Robot is parllel, but slightly to the left of line.
-							lt_state = LT_STRAFE_RIGHT;
-						}
-					}
-					break;
-					case LT_STRAFE_LEFT: {
-						if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-							//Robot has succesfully strafed onto the line.
-							lt_state = LT_DRIVE_FORWARD;
-						}
-						else {
-							//Robot strafes to get onto line.
-							hori1 = hori1 - .5;
-						}
-					}
-
-					break;
-					case LT_STRAFE_RIGHT: {
-						if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
-							//Robot has succesfully gotten onto line.
-							lt_state = LT_DRIVE_FORWARD;
-						}
-						else if (lightSensorLeft.Get() == SENSOR_SEES_LINE)
-						{
-							lt_state = LT_STRAFE_LEFT;
-						}
-						else {
-							//Robot strafes onto line.
-							hori1 = hori1 + .5;
-						}
-					}
-					break;
-					case LT_DRIVE_FORWARD: {
-						if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
-							//Robot is slightly to the right of line.
-							lt_state = LT_STRAFE_LEFT;
-						} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
-							//Robot is slightly to the left of line.
-							lt_state = LT_STRAFE_RIGHT;
-						}
-						else if (lightSensorMiddle.Get() == SENSOR_NO_LINE)
-						{
-							lt_state = LT_STRAFE_RIGHT;
-						}
-					}
-					break;
-					default:
-					lt_state = LT_FIND_LINE;
-				}
-
-			}
-
-			else
-			{
-				switch(lt_state)
-				{
-					default:
-					lt_state = LT_FIND_LINE;
-				}
-			}
-
-			//Makes axes easier to understand. Processed inputs for slow acceleration.
-			//Processing x1
-			if (hori1> x) {
-				x = x + .0005;
-			} else if (hori1 < x) {
-				x = x - .0005;
-			} else {
-				x = hori1;
-			}
-			//Prossesing y1
-			if (vert1> y) {
-				y = y + .0005;
-			} else if (vert1 < y) {
-				y = y - .0005;
-			} else {
-				y = vert1;
-			}
-			//Prossesing x2
-			if (hori2> z) {
-				z = z + .0005;
-			} else if (hori2 < z) {
-				z = z - .0005;
-			} else {
-				z = hori2;
-			}
-
-			// Calculate motor control values based on joystick input
-			//Upper Left Quadrant
-			if (x < 0 && y < 0) {
-				if (z> 0) {
-					a = (-(x*x)+(y*y)+(z*z))/(-x-y+z);
-					b = (-(x*x)-(y*y)+(z*z))/(-x-y+z);
-					c = ((x*x)+(y*y)+(z*z))/(-x-y+z);
-					d = ((x*x)-(y*y)+(z*z))/(-x-y+z);
-				} else if (z < 0) {
-					a = (-(x*x)+(y*y)-(z*z))/(-x-y-z);
-					b = (-(x*x)-(y*y)-(z*z))/(-x-y-z);
-					c = ((x*x)+(y*y)-(z*z))/(-x-y-z);
-					d = ((x*x)-(y*y)-(z*z))/(-x-y-z);
-				} else {
-					a = (-(x*x)+(y*y)+(z*z))/(-x-y+z);
-					b = (-(x*x)-(y*y)+(z*z))/(-x-y+z);
-					c = ((x*x)+(y*y)+(z*z))/(-x-y+z);
-					d = ((x*x)-(y*y)+(z*z))/(-x-y+z);
-				}
-				//Upper Right Quadrant
-			} else if (x> 0 && y < 0) {
-
-				if (z> 0) {
-					a = ((x*x)+(y*y)+(z*z)) / (x-y+z);
-					b = ((x*x)-(y*y)+(z*z)) / (x-y+z);
-					c = (-(x*x)+(y*y)+(z*z)) / (x-y+z);
-					d = (-(x*x)-(y*y)+(z*z)) / (x-y+z);
-				}
-
-				else if (z < 0) {
-					a = ((x*x)+(y*y)-(z*z)) / (x-y-z);
-					b = ((x*x)-(y*y)-(z*z)) / (x-y-z);
-					c = (-(x*x)+(y*y)-(z*z)) / (x-y-z);
-					d = (-(x*x)-(y*y)-(z*z)) / (x-y-z);
-				}
-
-				else {
-					a = ((x*x)+(y*y)-(z*z)) / (x-y+z);
-					b = ((x*x)-(y*y)-(z*z)) / (x-y+z);
-					c = (-(x*x)+(y*y)-(z*z)) / (x-y+z);
-					d = (-(x*x)-(y*y)-(z*z)) / (x-y+z);
-				}
-				//Back Right Quadrant
-			} else if (x> 0 && y> 0) {
-
-				if (z> 0) {
-					a = ((x*x)-(y*y)+(z*z))/(x+y+z);
-					b = ((x*x)+(y*y)+(z*z))/(x+y+z);
-					c = (-(x*x)-(y*y)+(z*z))/(x+y+z);
-					d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
-				}
-
-				else if (z < 0) {
-					a = ((x*x)-(y*y)-(z*z))/(x+y-z);
-					b = ((x*x)+(y*y)-(z*z))/(x+y-z);
-					c = (-(x*x)-(y*y)-(z*z))/(x+y-z);
-					d = (-(x*x)+(y*y)-(z*z))/(x+y-z);
-				} else {
-					a = ((x*x)-(y*y)+(z*z))/(x+y+z);
-					b = ((x*x)+(y*y)+(z*z))/(x+y+z);
-					c = (-(x*x)-(y*y)+(z*z))/(x+y+z);
-					d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
-				}
-				//Back Left Quadrant
-			} else if (x < 0 && y> 0) {
-
-				if (z> 0) {
-					a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
-					b = (-(x*x)+(y*y)+(z*z))/(-x+y+z);
-					c = ((x*x)-(y*y)+(z*z))/(-x+y+z);
-					d = ((x*x)+(y*y)+(z*z))/(-x+y+z);
-				}
-
-				else if (z < 0) {
-					a = (-(x*x)-(y*y)-(z*z))/(-x+y-z);
-					b = (-(x*x)+(y*y)-(z*z))/(-x+y-z);
-					c = ((x*x)-(y*y)-(z*z))/(-x+y-z);
-					d = ((x*x)+(y*y)-(z*z))/(-x+y-z);
-				}
-				else
-				{
-					a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
-					b = (-(x*x)+(y*y)+(z*z))/(-x+y+z);
-					c = ((x*x)-(y*y)+(z*z))/(-x+y+z);
-					d = ((x*x)+(y*y)+(z*z))/(-x+y+z);
-				}
-			}
-			//Strafe Right
-			else if (x> 0 && y == 0)
-			{
-				if(z> 0)
-				{
-					a = ((x*x)+(z*z))/(x+z);
-					b = ((x*x)+(z*z))/(x+z);
-					c = (-(x*x)+(z*z))/(x+z);
-					d = (-(x*x)+(z*z))/(x+z);
-				}
-				else if(z < 0)
-				{
-					a = ((x*x)-(z*z))/(x-z);
-					b = ((x*x)-(z*z))/(x-z);
-					c = (-(x*x)-(z*z))/(x-z);
-					d = (-(x*x)-(z*z))/(x-z);
-				}
-				else
-				{
-					a = ((x*x)+(z*z))/(x+z);
-					b = ((x*x)+(z*z))/(x+z);
-					c = (-(x*x)+(z*z))/(x+z);
-					d = (-(x*x)+(z*z))/(x+z);
-				}
-			}
-			//Strafe Left
-			else if (x < 0 && y == 0)
-			{
-				if(z> 0)
-				{
-					a = (-(x*x)+(z*z))/(-x+z);
-					b = (-(x*x)+(z*z))/(-x+z);
-					c = ((x*x)+(z*z))/(-x+z);
-					d = ((x*x)+(z*z))/(-x+z);
-				}
-				else if(z < 0)
-				{
-					a = (-(x*x)-(z*z))/(-x-z);
-					b = (-(x*x)-(z*z))/(-x-z);
-					c = ((x*x)-(z*z))/(-x-z);
-					d = ((x*x)-(z*z))/(-x-z);
-				}
-				else
-				{
-					a = (-(x*x)+(z*z))/(-x+z);
-					b = (-(x*x)+(z*z))/(-x+z);
-					c = ((x*x)+(z*z))/(-x+z);
-					d = ((x*x)+(z*z))/(-x+z);
-				}
-			}
-			//Backward
-			else if(y> 0 && x == 0)
-			{
-				if (z> 0)
-				{
-					a = (-(y*y)+(z*z))/(y+z);
-					b = ((y*y)+(z*z))/(y+z);
-					c = (-(y*y)+(z*z))/(y+z);
-					d = ((y*y)+(z*z))/(y+z);
-				}
-				else if (z < 0)
-				{
-					a = (-(y*y)-(z*z))/(y-z);
-					b = ((y*y)-(z*z))/(y-z);
-					c = (-(y*y)-(z*z))/(y-z);
-					d = ((y*y)-(z*z))/(y-z);
-				}
-				else
-				{
-					a = (-(y*y)+(z*z))/(y+z);
-					b = ((y*y)+(z*z))/(y+z);
-					c = (-(y*y)+(z*z))/(y+z);
-					d = ((y*y)+(z*z))/(y+z);
-				}
-			}
-			//Forward
-			else if (y < 0 && x == 0)
-			{
-				if (z> 0)
-				{
-					a = ((y*y)+(z*z))/(-y+z);
-					b = (-(y*y)+(z*z))/(-y+z);
-					c = ((y*y)+(z*z))/(-y+z);
-					d = (-(y*y)+(z*z))/(-y+z);
-				}
-				else if (z < 0)
-				{
-					a = ((y*y)-(z*z))/(-y-z);
-					b = (-(y*y)-(z*z))/(-y-z);
-					c = ((y*y)-(z*z))/(-y-z);
-					d = (-(y*y)-(z*z))/(-y-z);
-				}
-				else
-				{
-					a = ((y*y)-(z*z))/(-y+z);
-					b = (-(y*y)-(z*z))/(-y+z);
-					c = ((y*y)-(z*z))/(-y+z);
-					d = (-(y*y)-(z*z))/(-y+z);
-				}
-			}
-
-			// Send the control values to the motor controllers
-			frontLeftJag.Set(a);
-			frontRightJag.Set(b);
-			backLeftJag.Set(c);
-			backRightJag.Set(d);
-
-			//arm control
-			if(armControl.GetRawButton(1) == 1)
-			{
-				clawA.Set(true);
-				clawB.Set(false);
-			}
-			else
-			{
-				clawA.Set(false);
-				clawB.Set(true);
-			}
-			if(armControl.GetRawButton(2) == 1)
-			{
-				backA.Set(true);
-				backB.Set(false);
-				frontA.Set(false);
-				frontB.Set(true);
-			}
-			if(armControl.GetRawButton(3) == 1)
-			{
-				backA.Set(true);
-				backB.Set(false);
-				frontA.Set(true);
-				frontB.Set(false);
-			}
-			if(armControl.GetRawButton(4) == 1)
-			{
-				backA.Set(true);
-				backB.Set(false);
-				frontA.Set(true);
-				frontB.Set(false);
-			}
-			if(armControl.GetRawButton(2) == 1)
-			{
-				backA.Set(false);
-				backB.Set(true);
-				frontA.Set(true);
-				frontB.Set(false);
-
-				// TODO: camera testing
-
-
+				hori2 += .20 +.55 * (rotation / 360);
 			}
 		}
-	} // end OperatorControl
+
+		if (driveControl.GetRawButton(6)) {
+			printf("%f",hori2);
+			switch (lt_state) {
+				case LT_FIND_LINE: {
+					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+						//Robot is on and parallel to line.
+						lt_state = LT_DRIVE_FORWARD;
+					} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+						//Robot is parallel, but slightly to the right of line.
+						lt_state = LT_STRAFE_LEFT;
+					} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
+						//Robot is parllel, but slightly to the left of line.
+						lt_state = LT_STRAFE_RIGHT;
+					}
+				}
+				break;
+				case LT_STRAFE_LEFT: {
+					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+						//Robot has succesfully strafed onto the line.
+						lt_state = LT_DRIVE_FORWARD;
+					}
+					else {
+						//Robot strafes to get onto line.
+						hori1 = hori1 - .5;
+					}
+				}
+
+				break;
+				case LT_STRAFE_RIGHT: {
+					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+						//Robot has succesfully gotten onto line.
+						lt_state = LT_DRIVE_FORWARD;
+					}
+					else if (lightSensorLeft.Get() == SENSOR_SEES_LINE)
+					{
+						lt_state = LT_STRAFE_LEFT;
+					}
+					else {
+						//Robot strafes onto line.
+						hori1 = hori1 + .5;
+					}
+				}
+				break;
+				case LT_DRIVE_FORWARD: {
+					if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+						//Robot is slightly to the right of line.
+						lt_state = LT_STRAFE_LEFT;
+					} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
+						//Robot is slightly to the left of line.
+						lt_state = LT_STRAFE_RIGHT;
+					}
+					else if (lightSensorMiddle.Get() == SENSOR_NO_LINE)
+					{
+						lt_state = LT_STRAFE_RIGHT;
+					}
+				}
+				break;
+				default:
+				lt_state = LT_FIND_LINE;
+			}
+
+		}
+
+		else
+		{
+			switch(lt_state)
+			{
+				default:
+				lt_state = LT_FIND_LINE;
+			}
+		}
+
+		//Makes axes easier to understand. Processed inputs for slow acceleration.
+		//Processing x1
+		if (hori1> x) {
+			x = x + .0005;
+		} else if (hori1 < x) {
+			x = x - .0005;
+		} else {
+			x = hori1;
+		}
+		//Prossesing y1
+		if (vert1> y) {
+			y = y + .0005;
+		} else if (vert1 < y) {
+			y = y - .0005;
+		} else {
+			y = vert1;
+		}
+		//Prossesing x2
+		if (hori2> z) {
+			z = z + .0005;
+		} else if (hori2 < z) {
+			z = z - .0005;
+		} else {
+			z = hori2;
+		}
+
+		// Calculate motor control values based on joystick input
+		//Upper Left Quadrant
+		if (x < 0 && y < 0) {
+			if (z> 0) {
+				a = (-(x*x)+(y*y)+(z*z))/(-x-y+z);
+				b = (-(x*x)-(y*y)+(z*z))/(-x-y+z);
+				c = ((x*x)+(y*y)+(z*z))/(-x-y+z);
+				d = ((x*x)-(y*y)+(z*z))/(-x-y+z);
+			} else if (z < 0) {
+				a = (-(x*x)+(y*y)-(z*z))/(-x-y-z);
+				b = (-(x*x)-(y*y)-(z*z))/(-x-y-z);
+				c = ((x*x)+(y*y)-(z*z))/(-x-y-z);
+				d = ((x*x)-(y*y)-(z*z))/(-x-y-z);
+			} else {
+				a = (-(x*x)+(y*y)+(z*z))/(-x-y+z);
+				b = (-(x*x)-(y*y)+(z*z))/(-x-y+z);
+				c = ((x*x)+(y*y)+(z*z))/(-x-y+z);
+				d = ((x*x)-(y*y)+(z*z))/(-x-y+z);
+			}
+			//Upper Right Quadrant
+		} else if (x> 0 && y < 0) {
+
+			if (z> 0) {
+				a = ((x*x)+(y*y)+(z*z)) / (x-y+z);
+				b = ((x*x)-(y*y)+(z*z)) / (x-y+z);
+				c = (-(x*x)+(y*y)+(z*z)) / (x-y+z);
+				d = (-(x*x)-(y*y)+(z*z)) / (x-y+z);
+			}
+
+			else if (z < 0) {
+				a = ((x*x)+(y*y)-(z*z)) / (x-y-z);
+				b = ((x*x)-(y*y)-(z*z)) / (x-y-z);
+				c = (-(x*x)+(y*y)-(z*z)) / (x-y-z);
+				d = (-(x*x)-(y*y)-(z*z)) / (x-y-z);
+			}
+
+			else {
+				a = ((x*x)+(y*y)-(z*z)) / (x-y+z);
+				b = ((x*x)-(y*y)-(z*z)) / (x-y+z);
+				c = (-(x*x)+(y*y)-(z*z)) / (x-y+z);
+				d = (-(x*x)-(y*y)-(z*z)) / (x-y+z);
+			}
+			//Back Right Quadrant
+		} else if (x> 0 && y> 0) {
+
+			if (z> 0) {
+				a = ((x*x)-(y*y)+(z*z))/(x+y+z);
+				b = ((x*x)+(y*y)+(z*z))/(x+y+z);
+				c = (-(x*x)-(y*y)+(z*z))/(x+y+z);
+				d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
+			}
+
+			else if (z < 0) {
+				a = ((x*x)-(y*y)-(z*z))/(x+y-z);
+				b = ((x*x)+(y*y)-(z*z))/(x+y-z);
+				c = (-(x*x)-(y*y)-(z*z))/(x+y-z);
+				d = (-(x*x)+(y*y)-(z*z))/(x+y-z);
+			} else {
+				a = ((x*x)-(y*y)+(z*z))/(x+y+z);
+				b = ((x*x)+(y*y)+(z*z))/(x+y+z);
+				c = (-(x*x)-(y*y)+(z*z))/(x+y+z);
+				d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
+			}
+			//Back Left Quadrant
+		} else if (x < 0 && y> 0) {
+
+			if (z> 0) {
+				a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
+				b = (-(x*x)+(y*y)+(z*z))/(-x+y+z);
+				c = ((x*x)-(y*y)+(z*z))/(-x+y+z);
+				d = ((x*x)+(y*y)+(z*z))/(-x+y+z);
+			}
+
+			else if (z < 0) {
+				a = (-(x*x)-(y*y)-(z*z))/(-x+y-z);
+				b = (-(x*x)+(y*y)-(z*z))/(-x+y-z);
+				c = ((x*x)-(y*y)-(z*z))/(-x+y-z);
+				d = ((x*x)+(y*y)-(z*z))/(-x+y-z);
+			}
+			else
+			{
+				a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
+				b = (-(x*x)+(y*y)+(z*z))/(-x+y+z);
+				c = ((x*x)-(y*y)+(z*z))/(-x+y+z);
+				d = ((x*x)+(y*y)+(z*z))/(-x+y+z);
+			}
+		}
+		//Strafe Right
+		else if (x> 0 && y == 0)
+		{
+			if(z> 0)
+			{
+				a = ((x*x)+(z*z))/(x+z);
+				b = ((x*x)+(z*z))/(x+z);
+				c = (-(x*x)+(z*z))/(x+z);
+				d = (-(x*x)+(z*z))/(x+z);
+			}
+			else if(z < 0)
+			{
+				a = ((x*x)-(z*z))/(x-z);
+				b = ((x*x)-(z*z))/(x-z);
+				c = (-(x*x)-(z*z))/(x-z);
+				d = (-(x*x)-(z*z))/(x-z);
+			}
+			else
+			{
+				a = ((x*x)+(z*z))/(x+z);
+				b = ((x*x)+(z*z))/(x+z);
+				c = (-(x*x)+(z*z))/(x+z);
+				d = (-(x*x)+(z*z))/(x+z);
+			}
+		}
+		//Strafe Left
+		else if (x < 0 && y == 0)
+		{
+			if(z> 0)
+			{
+				a = (-(x*x)+(z*z))/(-x+z);
+				b = (-(x*x)+(z*z))/(-x+z);
+				c = ((x*x)+(z*z))/(-x+z);
+				d = ((x*x)+(z*z))/(-x+z);
+			}
+			else if(z < 0)
+			{
+				a = (-(x*x)-(z*z))/(-x-z);
+				b = (-(x*x)-(z*z))/(-x-z);
+				c = ((x*x)-(z*z))/(-x-z);
+				d = ((x*x)-(z*z))/(-x-z);
+			}
+			else
+			{
+				a = (-(x*x)+(z*z))/(-x+z);
+				b = (-(x*x)+(z*z))/(-x+z);
+				c = ((x*x)+(z*z))/(-x+z);
+				d = ((x*x)+(z*z))/(-x+z);
+			}
+		}
+		//Backward
+		else if(y> 0 && x == 0)
+		{
+			if (z> 0)
+			{
+				a = (-(y*y)+(z*z))/(y+z);
+				b = ((y*y)+(z*z))/(y+z);
+				c = (-(y*y)+(z*z))/(y+z);
+				d = ((y*y)+(z*z))/(y+z);
+			}
+			else if (z < 0)
+			{
+				a = (-(y*y)-(z*z))/(y-z);
+				b = ((y*y)-(z*z))/(y-z);
+				c = (-(y*y)-(z*z))/(y-z);
+				d = ((y*y)-(z*z))/(y-z);
+			}
+			else
+			{
+				a = (-(y*y)+(z*z))/(y+z);
+				b = ((y*y)+(z*z))/(y+z);
+				c = (-(y*y)+(z*z))/(y+z);
+				d = ((y*y)+(z*z))/(y+z);
+			}
+		}
+		//Forward
+		else if (y < 0 && x == 0)
+		{
+			if (z> 0)
+			{
+				a = ((y*y)+(z*z))/(-y+z);
+				b = (-(y*y)+(z*z))/(-y+z);
+				c = ((y*y)+(z*z))/(-y+z);
+				d = (-(y*y)+(z*z))/(-y+z);
+			}
+			else if (z < 0)
+			{
+				a = ((y*y)-(z*z))/(-y-z);
+				b = (-(y*y)-(z*z))/(-y-z);
+				c = ((y*y)-(z*z))/(-y-z);
+				d = (-(y*y)-(z*z))/(-y-z);
+			}
+			else
+			{
+				a = ((y*y)-(z*z))/(-y+z);
+				b = (-(y*y)-(z*z))/(-y+z);
+				c = ((y*y)-(z*z))/(-y+z);
+				d = (-(y*y)-(z*z))/(-y+z);
+			}
+		}
+
+		// Send the control values to the motor controllers
+		frontLeftJag.Set(a);
+		frontRightJag.Set(b);
+		backLeftJag.Set(c);
+		backRightJag.Set(d);
+
+		//arm control
+		if (armControl.GetRawButton(3))
+		{
+			liftA.Set(true);
+			liftB.Set(false);
+			Wait(1 / 1000);
+			liftA.Set(false);
+			liftB.Set(false);
+		}
+		
+		else if (armControl.GetRawButton(2))
+		{
+			liftA.Set(false);
+			liftB.Set(true);
+			Wait(1 / 1000);
+			liftA.Set(false);
+			liftB.Set(false);
+		}
+		
+		if (armControl.GetRawAxis(1))
+		{
+			liftA.Set(true);
+			liftB.Set(false);
+			Wait(1 / 1000);
+			liftA.Set(false);
+			liftB.Set(false);
+		}
+		
+		else if (armControl.GetRawAxis(1))
+		{
+			liftA.Set(false);
+			liftB.Set(true);
+			Wait(1 / 1000);
+			liftA.Set(false);
+			liftB.Set(false);
+		}
+		
+	}
+} // end OperatorControl
 };
 START_ROBOT_CLASS(RobotDemo)
 ;
