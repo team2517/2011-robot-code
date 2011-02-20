@@ -37,7 +37,10 @@ class RobotDemo : public SimpleRobot {
 	Jaguar backLeftJag;
 	Jaguar armLiftA;
 	Jaguar armLiftB;
-	Victor armDrum;
+	Victor armDrumA;
+	Victor armDrumB;
+	Victor gripper;
+	Victor gripperLift;
 	DigitalInput lightSensorLeft; //Light sensor located at the front.
 	DigitalInput lightSensorMiddle;
 	DigitalInput lightSensorRight;
@@ -50,9 +53,10 @@ public:
 	RobotDemo(void) :
 		driveControl(1), armControl(2), frontRightJag(3), frontLeftJag(2),
 				backRightJag(4), backLeftJag(1), armLiftA(5), armLiftB(6),
-				armDrum(7), lightSensorLeft(1), lightSensorMiddle(2),
-				lightSensorRight(3), dds(), lt_state(LT_FIND_LINE),
-				lineParallel(1), wallSensor(5, 4) {
+				armDrumA(7), armDrumB(8), gripper(9), gripperLift(10),
+				lightSensorLeft(1), lightSensorMiddle(2), lightSensorRight(3),
+				dds(), lt_state(LT_FIND_LINE), lineParallel(1),
+				wallSensor(5, 4) {
 		Watchdog().SetExpiration(.75);
 		wallSensor.SetAutomaticMode(true);
 	}
@@ -282,7 +286,7 @@ public:
 					d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
 				}
 				//Back Left Quadrant
-			} else if (x < 0 && y> 0){ 
+			} else if (x < 0 && y> 0){
 
 			if (z> 0) {
 				a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
@@ -431,15 +435,16 @@ public:
 		{
 			armLiftA.Set(-.5);
 			armLiftB.Set(.5);
-			
+
 		}
 		else
 		{
 			armLiftA.Set(0);
 			armLiftB.Set(0);
 		}
-		
-		armDrum.Set(armControl.GetRawAxis(1));
+
+		armDrumA.Set(armControl.GetRawAxis(1));
+		armDrumB.Set(armControl.GetRawAxis(1));
 		//todo: Make primary arm code.
 	}
 
