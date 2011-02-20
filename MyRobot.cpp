@@ -230,7 +230,7 @@ public:
 					d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
 				}
 				//Back Left Quadrant
-			} else if (x < 0 && y> 0){ 
+			} else if (x < 0 && y> 0){
 
 			if (z> 0) {
 				a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
@@ -368,7 +368,6 @@ public:
 
 }
 
-//todo: Arm code here.
 
 
 void OperatorControl(void) {
@@ -735,24 +734,27 @@ void OperatorControl(void) {
 		backLeftJag.Set(c);
 		backRightJag.Set(d);
 
-		
 		//Minibot Deployment
-		
+
 		if (armControl.GetRawButton(6))
 		{
 			miniA.Set(true);
 			miniB.Set(false);
 		}
-		
-		
+
 		//arm control
 
 	}
 
 }
 
+//todo: Arm control: Needs Testing
+//todo: Gripper control: Needs understanding
+//todo: Minibot deployment: Needs Testing
+//todo: Transition from autonomous to teleop: Needs Testing
 }; // end OperatorControl()
 
 
 START_ROBOT_CLASS(RobotDemo)
 ;
+
