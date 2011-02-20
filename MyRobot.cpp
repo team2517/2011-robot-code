@@ -426,26 +426,27 @@ public:
 		backRightJag.Set(d);
 
 		//arm control
-		if(armControl.GetRawButton(2))
+		//Pushes plastic out/Extends first column
+		if(armControl.GetRawButton(3))
 		{
 			armLiftA.Set(.5);
 			armLiftB.Set(-.5);
 		}
+		//Pulls plastic in/Contracts first column
 		else if(armControl.GetRawButton(3))
 		{
 			armLiftA.Set(-.5);
 			armLiftB.Set(.5);
 
 		}
+		//Motors stay still/Plastic stays where it is.
 		else
 		{
 			armLiftA.Set(0);
 			armLiftB.Set(0);
 		}
-
 		armDrumA.Set(armControl.GetRawAxis(1));
 		armDrumB.Set(armControl.GetRawAxis(1));
-		//todo: Make primary arm code.
 	}
 
 }
