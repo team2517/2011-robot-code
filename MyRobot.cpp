@@ -748,7 +748,7 @@ void OperatorControl(void) {
 
 }
 
-//todo: Arm control: Needs Testing
+//todo: Arm control: Needs understanding
 //todo: Gripper control: Needs understanding
 //todo: Minibot deployment: Needs Testing
 //todo: Transition from autonomous to teleop: Needs Testing
