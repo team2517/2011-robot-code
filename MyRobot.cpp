@@ -398,7 +398,7 @@ void OperatorControl(void) {
 
 	while (IsOperatorControl()) {
 		Watchdog().Feed();
-
+	
 		rotation = fmod(lineParallel.GetAngle(),360.0);
 		if (rotation>180)
 		{
@@ -743,15 +743,16 @@ void OperatorControl(void) {
 		}
 
 		//arm control
+		
+		printf("%f\n",hori2);
 
 	}
 
 }
 
-//todo: Arm control: Needs understanding
-//todo: Gripper control: Needs understanding
+//todo: Arm control: Needs testing
+//todo: Gripper control: Needs testing
 //todo: Minibot deployment: Needs Testing
-//todo: Transition from autonomous to teleop: Needs Testing
 }; // end OperatorControl()
 
 
