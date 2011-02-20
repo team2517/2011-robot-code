@@ -731,22 +731,33 @@ void OperatorControl(void) {
 			liftB.Set(false);
 		}
 		
-		if (armControl.GetRawAxis(1))
+		if (armControl.GetRawAxis(1) > 0)
 		{
-			liftA.Set(true);
-			liftB.Set(false);
-			Wait(1 / 1000);
-			liftA.Set(false);
-			liftB.Set(false);
+			elbowA.Set(true);
+			elbowB.Set(false);
+			Wait(armControl.GetRawAxis(1) / 1000);
+			elbowA.Set(false);
+			elbowB.Set(false);
 		}
 		
-		else if (armControl.GetRawAxis(1))
+		else if (armControl.GetRawAxis(1) < 0)
 		{
-			liftA.Set(false);
-			liftB.Set(true);
-			Wait(1 / 1000);
-			liftA.Set(false);
-			liftB.Set(false);
+			elbowA.Set(false);
+			elbowB.Set(true);
+			Wait(-armControl.GetRawAxis(1) / 1000);
+			elbowA.Set(false);
+			elbowB.Set(false);
+		}
+		
+		if(armControl.GetRawButton(1))
+		{
+			clampA.Set(true);
+			clampB.Set(false);
+		}
+		else
+		{
+			clampA.Set(false);
+			clampB.Set(true);
 		}
 		
 	}
