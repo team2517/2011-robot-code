@@ -368,8 +368,6 @@ public:
 
 }
 
-
-
 void OperatorControl(void) {
 
 	Watchdog().SetEnabled(true);
@@ -398,7 +396,7 @@ void OperatorControl(void) {
 
 	while (IsOperatorControl()) {
 		Watchdog().Feed();
-	
+
 		rotation = fmod(lineParallel.GetAngle(),360.0);
 		if (rotation>180)
 		{
@@ -742,9 +740,9 @@ void OperatorControl(void) {
 			miniB.Set(false);
 		}
 
+		printf("%f\n",miniA.Get());
+
 		//arm control
-		
-		printf("%f\n",hori2);
 
 	}
 
