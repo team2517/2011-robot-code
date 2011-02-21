@@ -730,7 +730,7 @@ void OperatorControl(void) {
 			liftA.Set(false);
 			liftB.Set(false);
 		}
-		
+		/*
 		if (armControl.GetRawAxis(1) > 0)
 		{
 			elbowA.Set(true);
@@ -748,7 +748,7 @@ void OperatorControl(void) {
 			elbowA.Set(false);
 			elbowB.Set(false);
 		}
-		
+		*/
 		if(armControl.GetRawButton(1))
 		{
 			clampA.Set(true);
