@@ -51,7 +51,7 @@ class RobotDemo : public SimpleRobot {
 public:
 	RobotDemo(void) :
 		driveControl(1), armControl(2), frontRightJag(3), frontLeftJag(2),
-				backRightJag(4), backLeftJag(1), compress1(4, 1, 4, 1),
+				backRightJag(4), backLeftJag(1), compress1(6, 6),
 				liftA(1), liftB(2), elbowA(3), elbowB(4), clampA(5), clampB(6),
 				lightSensorLeft(1), lightSensorMiddle(2), lightSensorRight(3),
 				dds(), lineParallel(1), lt_state(LT_FIND_LINE)
