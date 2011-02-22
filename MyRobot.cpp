@@ -37,6 +37,13 @@ class RobotDemo : public SimpleRobot {
 	Jaguar backLeftJag;
 	Solenoid miniA;
 	Solenoid miniB;
+	Solenoid tiltA;
+	Solenoid tiltB;
+	Solenoid liftA;
+	Solenoid liftB;
+	Solenoid clampA;
+	Solenoid clampB;
+	Compressor compress1;
 	DigitalInput lightSensorLeft; //Light sensor located at the front.
 	DigitalInput lightSensorMiddle;
 	DigitalInput lightSensorRight;
@@ -51,9 +58,13 @@ public:
 				backRightJag(4), backLeftJag(1), lightSensorLeft(1),
 				lightSensorMiddle(2), lightSensorRight(3), dds(),
 				lt_state(LT_FIND_LINE), lineParallel(1), wallSensor(5, 4),
-				miniA(1), miniB(2) {
+				miniA(1), miniB(2), tiltA(3), tiltB(4), liftA(5), liftB(6),
+				clampA(7), clampB(8), compress1(6, 1)
+				
+	{
 		Watchdog().SetExpiration(.75);
 		wallSensor.SetAutomaticMode(true);
+		compress1.Start();
 	}
 
 	void Autonomous(void) {
@@ -392,11 +403,11 @@ void OperatorControl(void) {
 	float hori1 = 0;
 	float vert1 = 0;
 	float hori2 = 0;
-	lineParallel.Reset();
 
 	while (IsOperatorControl()) {
 		Watchdog().Feed();
-
+		
+		
 		rotation = fmod(lineParallel.GetAngle(),360.0);
 		if (rotation>180)
 		{
@@ -733,16 +744,59 @@ void OperatorControl(void) {
 		backRightJag.Set(d);
 
 		//Minibot Deployment
-
 		if (armControl.GetRawButton(6))
 		{
 			miniA.Set(true);
 			miniB.Set(false);
 		}
+		else if(armControl.GetRawButton(7))
+		{
+			miniA.Set(false);
+			miniB.Set(true);
+		}
 
-		printf("%f\n",miniA.Get());
-
-		//arm control
+		//Arm Control
+		
+		if(armControl.GetRawAxis(1) > .5)
+		{
+			tiltA.Set(true);
+			tiltB.Set(false);
+		}
+		else if (armControl.GetRawAxis(1) < -.5)
+		{
+			tiltA.Set(false);
+			tiltB.Set(true);
+		}
+		
+		if(armControl.GetRawButton(3))
+		{
+			liftA.Set(true);
+			liftB.Set(false);
+		}
+		else if (armControl.GetRawButton(2))
+		{
+			liftA.Set(false);
+			liftB.Set(true);
+		}
+		
+		if (armControl.GetRawButton(1))
+		{
+			clampA.Set(true);
+			clampB.Set(false);
+		}
+		else
+		{
+			clampA.Set(false);
+			clampB.Set(true);
+		}
+		if (armControl.GetRawButton(10))
+		{
+			compress1.Start();
+		}
+		else if(armControl.GetRawButton(11))
+		{
+			compress1.Stop();
+		}
 
 	}
 
