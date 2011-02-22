@@ -526,25 +526,25 @@ void OperatorControl(void) {
 		//Makes axes easier to understand. Processed inputs for slow acceleration.
 		//Processing x1
 		if (hori1> x) {
-			x = x + .0005;
+			x = x + .00025;
 		} else if (hori1 < x) {
-			x = x - .0005;
+			x = x - .00025;
 		} else {
 			x = hori1;
 		}
 		//Prossesing y1
 		if (vert1> y) {
-			y = y + .0005;
+			y = y + .00025;
 		} else if (vert1 < y) {
-			y = y - .0005;
+			y = y - .00025;
 		} else {
 			y = vert1;
 		}
 		//Prossesing x2
 		if (hori2> z) {
-			z = z + .0005;
+			z = z + .00025;
 		} else if (hori2 < z) {
-			z = z - .0005;
+			z = z - .00025;
 		} else {
 			z = hori2;
 		}
@@ -757,12 +757,12 @@ void OperatorControl(void) {
 
 		//Arm Control
 		
-		if(armControl.GetRawAxis(1) > .5)
+		if(armControl.GetRawButton(9))
 		{
 			tiltA.Set(true);
 			tiltB.Set(false);
 		}
-		else if (armControl.GetRawAxis(1) < -.5)
+		else if (armControl.GetRawButton(8))
 		{
 			tiltA.Set(false);
 			tiltB.Set(true);
@@ -803,8 +803,6 @@ void OperatorControl(void) {
 }
 
 //todo: Arm control: Needs testing
-//todo: Gripper control: Needs testing
-//todo: Minibot deployment: Needs Testing
 }; // end OperatorControl()
 
 
