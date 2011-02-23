@@ -58,9 +58,9 @@ public:
 				backRightJag(4), backLeftJag(1), lightSensorLeft(1),
 				lightSensorMiddle(2), lightSensorRight(3), dds(),
 				lt_state(LT_FIND_LINE), lineParallel(1), wallSensor(5, 4),
-				miniA(1), miniB(2), tiltA(3), tiltB(4), liftA(5), liftB(6),
+				miniA(5), miniB(6), tiltA(3), tiltB(4), liftA(1), liftB(2),
 				clampA(7), clampB(8), compress1(6, 1)
-				
+
 	{
 		Watchdog().SetExpiration(.75);
 		wallSensor.SetAutomaticMode(true);
@@ -84,6 +84,18 @@ public:
 		float hori1 = 0;
 		float vert1 = 0;
 		float hori2 = 0;
+
+		frontRightJag.Set(.4);
+		frontLeftJag.Set(-.4);
+		backRightJag.Set(.4);
+		backLeftJag.Set(-.4);
+
+		Wait(.25);
+
+		frontRightJag.Set(0);
+		frontLeftJag.Set(0);
+		backRightJag.Set(0);
+		backLeftJag.Set(0);
 
 		printf("%f\n", wallSensor.GetRangeMM());
 		while (wallSensor.GetRangeMM()> 500) {
@@ -403,11 +415,17 @@ void OperatorControl(void) {
 	float hori1 = 0;
 	float vert1 = 0;
 	float hori2 = 0;
+	
+	int clawState = 1;
+
+	tiltA.Set(true);
+	tiltB.Set(false);
+	clampA.Set(false);
+	clampB.Set(true);
 
 	while (IsOperatorControl()) {
 		Watchdog().Feed();
-		
-		
+
 		rotation = fmod(lineParallel.GetAngle(),360.0);
 		if (rotation>180)
 		{
@@ -426,13 +444,18 @@ void OperatorControl(void) {
 		vert1 = driveControl.GetRawAxis(LEFT_STICK_Y);
 		hori2 = driveControl.GetRawAxis(RIGHT_STICK_X);
 
+		if(driveControl.GetRawButton(8))
+		{
+			hori1 = hori1 * .25;
+			vert1 = vert1 * .25;
+			hori2 = hori2 * .25;
+		}
+		
 		// Motor control values
 		a = 0; // front left
 		b = 0; // front right
 		c = 0; // back left
 		d = 0; // back right
-		
-		int liftHold = 0;
 
 		// Test line tracking by strafing left and right
 		//and rotating to stay on and parallel with the line.
@@ -527,27 +550,40 @@ void OperatorControl(void) {
 
 		//Makes axes easier to understand. Processed inputs for slow acceleration.
 		//Processing x1
-		if (hori1> x) {
-			x = x + .00025;
-		} else if (hori1 < x) {
-			x = x - .00025;
-		} else {
+		if(hori1 > x)
+		{
+			x = x +.05;
+		}
+		else if (hori1 < x)
+		{
+			x = x - .05;
+		}
+		else
+		{
 			x = hori1;
 		}
-		//Prossesing y1
-		if (vert1> y) {
-			y = y + .00025;
-		} else if (vert1 < y) {
-			y = y - .00025;
-		} else {
+		if(vert1 > y)
+		{
+			y = y +.05;
+		}
+		else if (vert1 < y)
+		{
+			y = y - .05;
+		}
+		else
+		{
 			y = vert1;
 		}
-		//Prossesing x2
-		if (hori2> z) {
-			z = z + .00025;
-		} else if (hori2 < z) {
-			z = z - .00025;
-		} else {
+		if(hori2 > z)
+		{
+			z = z +.05;
+		}
+		else if (hori2 < z)
+		{
+			z = z - .05;
+		}
+		else
+		{
 			z = hori2;
 		}
 
@@ -758,7 +794,18 @@ void OperatorControl(void) {
 		}
 
 		//Arm Control
-		
+
+		if (armControl.GetRawButton(3))
+		{
+			liftA.Set(true);
+			liftB.Set(false);
+		}
+		if (armControl.GetRawButton(2))
+		{
+			liftA.Set(false);
+			liftB.Set(true);
+		}
+
 		if(armControl.GetRawButton(9))
 		{
 			tiltA.Set(true);
@@ -769,44 +816,8 @@ void OperatorControl(void) {
 			tiltA.Set(false);
 			tiltB.Set(true);
 		}
-		if (armControl.GetRawButton(6) != true && armControl.GetRawButton(7) != true)
-		{
-		if(liftHold == 0)
-		{
-			liftA.Set(true);
-			liftB.Set(false);
-			liftHold = 1;
-		}
-		else if (liftHold == 1)
-		{
-			liftA.Set(false);
-			liftB.Set(true);
-			liftHold = 0;
-		}
-		}
-		else if (armControl.GetRawButton(6))
-		{
-			liftA.Set(true);
-			liftB.Set(false);
-			liftHold = 1;
-		}
-		else if (armControl.GetRawButton(7))
-		{
-			liftA.Set(false);
-			liftB.Set(true);
-			liftHold = 0;
-		}
-		if(armControl.GetRawButton(3))
-		{
-			liftA.Set(true);
-			liftB.Set(false);
-		}
-		else if (armControl.GetRawButton(2))
-		{
-			liftA.Set(false);
-			liftB.Set(true);
-		}
-		
+
+
 		if (armControl.GetRawButton(1))
 		{
 			clampA.Set(true);
@@ -816,14 +827,6 @@ void OperatorControl(void) {
 		{
 			clampA.Set(false);
 			clampB.Set(true);
-		}
-		if (armControl.GetRawButton(10))
-		{
-			compress1.Start();
-		}
-		else if(armControl.GetRawButton(11))
-		{
-			compress1.Stop();
 		}
 
 	}
