@@ -431,6 +431,8 @@ void OperatorControl(void) {
 		b = 0; // front right
 		c = 0; // back left
 		d = 0; // back right
+		
+		int liftHold = 0;
 
 		// Test line tracking by strafing left and right
 		//and rotating to stay on and parallel with the line.
@@ -767,7 +769,33 @@ void OperatorControl(void) {
 			tiltA.Set(false);
 			tiltB.Set(true);
 		}
-		
+		if (armControl.GetRawButton(6) != true && armControl.GetRawButton(7) != true)
+		{
+		if(liftHold == 0)
+		{
+			liftA.Set(true);
+			liftB.Set(false);
+			liftHold = 1;
+		}
+		else if (liftHold == 1)
+		{
+			liftA.Set(false);
+			liftB.Set(true);
+			liftHold = 0;
+		}
+		}
+		else if (armControl.GetRawButton(6))
+		{
+			liftA.Set(true);
+			liftB.Set(false);
+			liftHold = 1;
+		}
+		else if (armControl.GetRawButton(7))
+		{
+			liftA.Set(false);
+			liftB.Set(true);
+			liftHold = 0;
+		}
 		if(armControl.GetRawButton(3))
 		{
 			liftA.Set(true);
