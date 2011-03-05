@@ -23,9 +23,6 @@
 // Camera target constants
 #define MINIMUM_SCORE 0.01
 
-/*
- * This code adds multitasking with turning.
- */
 
 class RobotDemo : public SimpleRobot {
 	Joystick driveControl;
@@ -97,7 +94,6 @@ public:
 		backRightJag.Set(0);
 		backLeftJag.Set(0);
 
-		printf("%f\n", wallSensor.GetRangeMM());
 		while (wallSensor.GetRangeMM()> 500) {
 			printf("%f\n", wallSensor.GetRangeMM());
 
@@ -415,8 +411,8 @@ void OperatorControl(void) {
 	float hori1 = 0;
 	float vert1 = 0;
 	float hori2 = 0;
-	
-	int clawState = 1;
+
+//	int clawState = 1;
 
 	tiltA.Set(true);
 	tiltB.Set(false);
@@ -450,7 +446,7 @@ void OperatorControl(void) {
 			vert1 = vert1 * .25;
 			hori2 = hori2 * .25;
 		}
-		
+
 		// Motor control values
 		a = 0; // front left
 		b = 0; // front right
@@ -550,7 +546,7 @@ void OperatorControl(void) {
 
 		//Makes axes easier to understand. Processed inputs for slow acceleration.
 		//Processing x1
-		if(hori1 > x)
+		if(hori1> x)
 		{
 			x = x +.05;
 		}
@@ -562,7 +558,7 @@ void OperatorControl(void) {
 		{
 			x = hori1;
 		}
-		if(vert1 > y)
+		if(vert1> y)
 		{
 			y = y +.05;
 		}
@@ -574,7 +570,7 @@ void OperatorControl(void) {
 		{
 			y = vert1;
 		}
-		if(hori2 > z)
+		if(hori2> z)
 		{
 			z = z +.05;
 		}
@@ -794,30 +790,34 @@ void OperatorControl(void) {
 		}
 
 		//Arm Control
-
-		if (armControl.GetRawButton(3))
+		if (tiltA.Get() == true && tiltB.Get() == false)
 		{
-			liftA.Set(true);
-			liftB.Set(false);
-		}
-		if (armControl.GetRawButton(2))
-		{
-			liftA.Set(false);
-			liftB.Set(true);
-		}
-
-		if(armControl.GetRawButton(9))
-		{
-			tiltA.Set(true);
-			tiltB.Set(false);
-		}
-		else if (armControl.GetRawButton(8))
-		{
-			tiltA.Set(false);
-			tiltB.Set(true);
+			if (armControl.GetRawButton(3))
+			{
+				liftA.Set(true);
+				liftB.Set(false);
+			}
+			if (armControl.GetRawButton(2))
+			{
+				liftA.Set(false);
+				liftB.Set(true);
+			}
 		}
 
-
+		if (liftA.Get() == true && liftB.Get() == false)
+		{
+			if(armControl.GetRawButton(9))
+			{
+				tiltA.Set(true);
+				tiltB.Set(false);
+			}
+			else if (armControl.GetRawButton(8))
+			{
+				tiltA.Set(false);
+				tiltB.Set(true);
+			}
+		}
+		
 		if (armControl.GetRawButton(1))
 		{
 			clampA.Set(true);
@@ -833,7 +833,6 @@ void OperatorControl(void) {
 
 }
 
-//todo: Arm control: Needs testing
 }; // end OperatorControl()
 
 
