@@ -4,9 +4,13 @@
 
 #include <math.h>
 
-// Line light sensor constants
-#define SENSOR_SEES_LINE 	true
-#define SENSOR_NO_LINE		false
+//This part just lets the computer know that when I refer to the stuff on the left, I actually mean
+//stuff on the right.
+#define SENSOR_SEES_LINE 	true  //The light sensor sees the line.
+#define SENSOR_NO_LINE		false  //The light sensor doesn't see the line.
+
+#define CAN_LIFT 			true
+#define NO_LIFT 			false
 
 // Joystick constants
 #define LEFT_STICK_X				1
@@ -19,9 +23,6 @@
 #define LT_STRAFE_LEFT				1
 #define LT_STRAFE_RIGHT				2
 #define LT_DRIVE_FORWARD			3
-
-// Camera target constants
-#define MINIMUM_SCORE 0.01
 
 
 class RobotDemo : public SimpleRobot {
