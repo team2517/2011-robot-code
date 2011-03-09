@@ -8,10 +8,10 @@
 //stuff on the right.
 #define SENSOR_SEES_LINE 	true  //The light sensor sees the line.
 #define SENSOR_NO_LINE		false  //The light sensor doesn't see the line.
-
-#define CAN_LIFT 			true
-#define NO_LIFT 			false
-
+#define CAN_LIFT 			true //The lift can move legally.
+#define NO_LIFT 			false//The lift can't move legally.
+#define CAN_TILT			true //The tilt can move legaly.
+#define NO_TILT				false//The tilt can't move legaly
 // Joystick constants
 #define LEFT_STICK_X				1
 #define LEFT_STICK_Y				2
@@ -19,35 +19,34 @@
 #define RIGHT_STICK_Y				4
 
 //States for line tracking.
-#define LT_FIND_LINE				0
-#define LT_STRAFE_LEFT				1
-#define LT_STRAFE_RIGHT				2
-#define LT_DRIVE_FORWARD			3
-
+#define LT_FIND_LINE				0 //The robot has no idea where the line is.
+#define LT_STRAFE_LEFT				1 //The robot needs to strafe left to follow the line.
+#define LT_STRAFE_RIGHT				2 //The robot needs to strafe right to find the line.
+#define LT_DRIVE_FORWARD			3 //The robot is centered on the line.
 
 class RobotDemo : public SimpleRobot {
-	Joystick driveControl;
-	Joystick armControl;
+	Joystick driveControl; //The logitech dual stick
+	Joystick armControl; //
 
-	Jaguar frontRightJag;// Mecanum wheels =D
+	Jaguar frontRightJag;// Mecanum wheels with bearings pointing to the center when viewed from above.
 	Jaguar frontLeftJag;
 	Jaguar backRightJag;
 	Jaguar backLeftJag;
-	Solenoid miniA;
+	Solenoid miniA; //Minibot deployment pneumatic.
 	Solenoid miniB;
-	Solenoid tiltA;
+	Solenoid tiltA; //Pneumatic at the base of the arm that controls tilt.
 	Solenoid tiltB;
-	Solenoid liftA;
+	Solenoid liftA; //The pneuamtic at the first joint that controls lift.
 	Solenoid liftB;
-	Solenoid clampA;
+	Solenoid clampA; //The pneumatic at the end of the arm that controls the clamp.
 	Solenoid clampB;
-	Compressor compress1;
-	DigitalInput lightSensorLeft; //Light sensor located at the front.
-	DigitalInput lightSensorMiddle;
+	Compressor compress1; //The one and only air compressor.
+	DigitalInput lightSensorLeft; //Light sensor that are located under a bar at the front bottom of
+	DigitalInput lightSensorMiddle; //the robot.
 	DigitalInput lightSensorRight;
-	DashboardDataSender dds;
-	Gyro lineParallel;
-	Ultrasonic wallSensor;
+	DashboardDataSender dds; //Sends data, such as the camera, to the dashboard.
+	Gyro lineParallel; //Gyro sensor located on the electrical board in the center of the robot.
+	Ultrasonic wallSensor; //Ultrasonic sensor located on the front left of the robot.
 	int lt_state; //State of the line tracker.
 
 public:
@@ -59,61 +58,73 @@ public:
 				miniA(5), miniB(6), tiltA(3), tiltB(4), liftA(1), liftB(2),
 				clampA(7), clampB(8), compress1(6, 1)
 
+	/* Joysticks (USB port)
+	 * Jaguars (PWM)
+	 * Solenoids (Solenoid Breakout Port)
+	 * Compressor (Pressure Switch Digital i/o, Compressor slot.)
+	 * DigitalInput (digital i/o)
+	 * Gyro (analog input)
+	 * Ultrasonic (analog input)
+	 */
 	{
-		Watchdog().SetExpiration(.75);
-		wallSensor.SetAutomaticMode(true);
-		compress1.Start();
+		Watchdog().SetExpiration(.75); //Set watchdog timer to .75 seconds.
+		wallSensor.SetAutomaticMode(true); //Start the wallSensor sending out sound automatically.
+		compress1.Start(); //Start compressor compressing.
 	}
 
 	void Autonomous(void) {
 
-		float a = 0;
+		float a = 0; //Creats and sets final motor output to zero.
 		float b = 0;
 		float c = 0;
 		float d = 0;
 
-		float rotation = 0;
-		lineParallel.Reset();
+		float rotation = 0; //Creates and sets degrees in rotation to zero.
+		lineParallel.Reset(); //Sets current gyro direction to zero.
 
-		float x;
-		float y;
+		float x; //Creates semiprocessessed, slow accelerating variable.
+		float y; // 
 		float z;
 
-		float hori1 = 0;
+		float hori1 = 0; //Creates raw controller outputs and sets them to zero.
 		float vert1 = 0;
 		float hori2 = 0;
 
-		frontRightJag.Set(.4);
+		frontRightJag.Set(.4); //Robot suddenly moves forward...
 		frontLeftJag.Set(-.4);
 		backRightJag.Set(.4);
 		backLeftJag.Set(-.4);
 
-		Wait(.25);
+		Wait(.25); // ...for a quarter of a second...
 
-		frontRightJag.Set(0);
+		frontRightJag.Set(0); // ...and stops suddenly.
 		frontLeftJag.Set(0);
 		backRightJag.Set(0);
 		backLeftJag.Set(0);
 
-		while (wallSensor.GetRangeMM()> 500) {
-			printf("%f\n", wallSensor.GetRangeMM());
+		while (wallSensor.GetRangeMM()> 500) { //This causes robot to stop when it gets within .5
+			//meters from the wall.
 
-			hori1 = 0;
+			hori1 = 0; //Sets raw controller outputs to 0.
 			vert1 = 0;
 			hori2 = 0;
 
-			a = 0;
+			a = 0; //Sets final motor outputs.
 			b = 0;
 			c = 0;
 			d = 0;
 
-			rotation = fmod(lineParallel.GetAngle(), 360.0);
+			rotation = fmod(lineParallel.GetAngle(), 360.0); //Since rotating 360 degrees leaves you 
+			//facing the same direction,
+			//we just need the remainder.
+			//Causes the robot to rotate the other direction if the robot has rotated over 180 degrees
+			//in the previous direction.
 			if (rotation>180) {
 				rotation-=360;
 			} else if (rotation<-180) {
 				rotation+=360;
 			}
-
+			//Modifies raw controller outputs to rotate starting fast and then slowing for accuracy.
 			if (rotation < 0) {
 				hori2 += -.20 + .55 * (rotation / 360);
 			}
@@ -122,14 +133,17 @@ public:
 			}
 
 			switch (lt_state) {
-			case LT_FIND_LINE: {
-				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+			case LT_FIND_LINE: { //If robot has no idea where line is.
+				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) { //Look for middle sensor to see 
+					//line.
 					//Robot is on and parallel to line.
 					lt_state = LT_DRIVE_FORWARD;
-				} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+				} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) { //Wait for left sensor to see
+					//line.
 					//Robot is parallel, but slightly to the right of line.
 					lt_state = LT_STRAFE_LEFT;
-				} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
+				} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) { //Wait for right sensor to see
+					//line.
 					//Robot is parllel, but slightly to the left of line.
 					lt_state = LT_STRAFE_RIGHT;
 				}
@@ -137,7 +151,8 @@ public:
 			}
 				break;
 			case LT_STRAFE_LEFT: {
-				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) { //Wait for middle sensor to see
+					//line.
 					//Robot has succesfully strafed onto the line.
 					lt_state = LT_DRIVE_FORWARD;
 				} else {
@@ -149,10 +164,13 @@ public:
 
 				break;
 			case LT_STRAFE_RIGHT: {
-				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+				if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) { //Wait for middle sensor to see
+					//line.
 					//Robot has succesfully gotten onto line.
 					lt_state = LT_DRIVE_FORWARD;
-				} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+				} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) { //Wait for left sensor to see
+					//line.
+					//Robot is parallel but to the right of the line.
 					lt_state = LT_STRAFE_LEFT;
 				} else {
 					//Robot strafes onto line.
@@ -162,15 +180,17 @@ public:
 			}
 				break;
 			case LT_DRIVE_FORWARD: {
-				if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+				if (lightSensorLeft.Get() == SENSOR_SEES_LINE) { //Wait for left sensor to see line.
 					//Robot is slightly to the right of line.
 					lt_state = LT_STRAFE_LEFT;
-				} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
+				} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) { //Wait for right sensor to
+					//see line.
 					//Robot is slightly to the left of line.
 					lt_state = LT_STRAFE_RIGHT;
 				}
 
 				else {
+					//Drive forward.
 					vert1 -= .5;
 				}
 			}
@@ -180,8 +200,8 @@ public:
 
 			}
 
-			//Makes axes easier to understand. Processed inputs for slow acceleration.
-			//Processing x1
+			//This would be the piece for slow acceleration.  However, we are moving so slowly in
+			//autonomous mode that we don't need it.  It would only make reactions sluggish.
 			x = hori1;
 			y = vert1;
 			z = hori2;
@@ -381,10 +401,13 @@ public:
 		backRightJag.Set(d);
 
 	}
+	//Stop moving forward.
 	frontLeftJag.Set(0);
 	frontRightJag.Set(0);
 	backLeftJag.Set(0);
 	backRightJag.Set(0);
+
+	//todo: Arm stuff goes here.
 
 }
 
@@ -392,6 +415,7 @@ void OperatorControl(void) {
 
 	Watchdog().SetEnabled(true);
 
+	//Send camera image to classmate.
 	printf("Getting camera instance\n");
 	AxisCamera &camera = AxisCamera::GetInstance();
 	/**axis1	= x on left stick
@@ -401,20 +425,19 @@ void OperatorControl(void) {
 	 **/
 
 	//Creates values for motors
-	float a = 0; //Front left.
-	float b = 0; //Front right.
-	float c = 0; //Back left.
-	float d = 0; //Back right.
-	float rotation = 0;
-	float x = 0;
+	float a = 0; //Create and set final motor outputs to zero.
+	float b = 0;
+	float c = 0;
+	float d = 0;
+	float rotation = 0; //Create and set degrees rotated to zero.
+	float x = 0; //Create and set semi-proccessed slow accelerating motor outputs to zero.
 	float y = 0;
 	float z = 0;
-	float hori1 = 0;
+	float hori1 = 0; //Create and set raw controller outputs to zero.
 	float vert1 = 0;
 	float hori2 = 0;
 
-//	int clawState = 1;
-
+	//todo: Set starting position
 	tiltA.Set(true);
 	tiltB.Set(false);
 	clampA.Set(false);
@@ -423,7 +446,11 @@ void OperatorControl(void) {
 	while (IsOperatorControl()) {
 		Watchdog().Feed();
 
-		rotation = fmod(lineParallel.GetAngle(),360.0);
+		rotation = fmod(lineParallel.GetAngle(),360.0); //Since turning 360 degrees keeps you facing
+		//the same direction, we only need the 
+		//remainder.
+		//To turn the least, after turning over 180 degrees, you keep turning the same direction to 
+		//right yourself.
 		if (rotation>180)
 		{
 			rotation-=360;
@@ -432,15 +459,15 @@ void OperatorControl(void) {
 		{
 			rotation+=360;
 		}
-		//Raw joystick inputs.
+		//Raw joystick inputs set to zero.
 		hori1 = 0;
 		vert1 = 0;
 		hori2 = 0;
-
+		//Set raw joystick outputs to variables.
 		hori1 = driveControl.GetRawAxis(LEFT_STICK_X);
 		vert1 = driveControl.GetRawAxis(LEFT_STICK_Y);
 		hori2 = driveControl.GetRawAxis(RIGHT_STICK_X);
-
+		//Reduces movement speed for precise control when button eight is pressed.
 		if(driveControl.GetRawButton(8))
 		{
 			hori1 = hori1 * .25;
@@ -459,10 +486,12 @@ void OperatorControl(void) {
 		// Only enabled when button 6 pressed
 		if (driveControl.GetRawButton(10))
 		{
-			lineParallel.Reset();
+			lineParallel.Reset(); //Set current direction to zero when button 10 is pressed.
 		}
 		if (driveControl.GetRawButton(5))
 		{
+			//Rotate and right the robot at a speed based on degrees changed when button five is
+			//pressed.
 			if(rotation < 0)
 			{
 				hori2 += -.20 + .55 * (rotation / 360);
@@ -474,23 +503,27 @@ void OperatorControl(void) {
 		}
 
 		if (driveControl.GetRawButton(6)) {
-			printf("%f",hori2);
+			//Enabe line tracking when button six is pressed.
 			switch (lt_state) {
 				case LT_FIND_LINE: {
-					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) { //Wait for middle sensor to see
+						//line.
 						//Robot is on and parallel to line.
 						lt_state = LT_DRIVE_FORWARD;
-					} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+					} else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) { //Wait for left sensor to 
+						//see line.
 						//Robot is parallel, but slightly to the right of line.
 						lt_state = LT_STRAFE_LEFT;
-					} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
+					} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) { //Wait for right sensor to
+						//see line.
 						//Robot is parllel, but slightly to the left of line.
 						lt_state = LT_STRAFE_RIGHT;
 					}
 				}
 				break;
 				case LT_STRAFE_LEFT: {
-					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) { //Wait for middle sensor to see
+						//line.
 						//Robot has succesfully strafed onto the line.
 						lt_state = LT_DRIVE_FORWARD;
 					}
@@ -502,11 +535,13 @@ void OperatorControl(void) {
 
 				break;
 				case LT_STRAFE_RIGHT: {
-					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) {
+					if (lightSensorMiddle.Get() == SENSOR_SEES_LINE) { //Wait for middle sensor to see
+						//line.
 						//Robot has succesfully gotten onto line.
 						lt_state = LT_DRIVE_FORWARD;
 					}
-					else if (lightSensorLeft.Get() == SENSOR_SEES_LINE)
+					else if (lightSensorLeft.Get() == SENSOR_SEES_LINE) //Wait for left sensor to see
+					//line.
 					{
 						lt_state = LT_STRAFE_LEFT;
 					}
@@ -517,14 +552,17 @@ void OperatorControl(void) {
 				}
 				break;
 				case LT_DRIVE_FORWARD: {
-					if (lightSensorLeft.Get() == SENSOR_SEES_LINE) {
+					if (lightSensorLeft.Get() == SENSOR_SEES_LINE) { //Wait for left sensor to see
+						//line.
 						//Robot is slightly to the right of line.
 						lt_state = LT_STRAFE_LEFT;
-					} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) {
+					} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) { //Wait for right sensor to
+						//see line.
 						//Robot is slightly to the left of line.
 						lt_state = LT_STRAFE_RIGHT;
 					}
-					else if (lightSensorMiddle.Get() == SENSOR_NO_LINE)
+					else if (lightSensorMiddle.Get() == SENSOR_NO_LINE) //Wait for middle sensor to 
+					//lose the line.
 					{
 						lt_state = LT_STRAFE_RIGHT;
 					}
@@ -545,8 +583,7 @@ void OperatorControl(void) {
 			}
 		}
 
-		//Makes axes easier to understand. Processed inputs for slow acceleration.
-		//Processing x1
+		//Processing inputs to make for slow acceleration.
 		if(hori1> x)
 		{
 			x = x +.05;
@@ -781,7 +818,7 @@ void OperatorControl(void) {
 		//Minibot Deployment
 		if (armControl.GetRawButton(6))
 		{
-			miniA.Set(true);
+			miniA.Set(true); 
 			miniB.Set(false);
 		}
 		else if(armControl.GetRawButton(7))
@@ -791,11 +828,11 @@ void OperatorControl(void) {
 		}
 
 		//Arm Control
-		if (tiltA.Get() == true && tiltB.Get() == false)
+		if (tiltA.Get() == false && tiltB.Get() == true)
 		{
 			if (armControl.GetRawButton(3))
 			{
-				liftA.Set(true);
+				liftA.Set(true); //Lift extends when button 3 is pressed and tilt is retracted.
 				liftB.Set(false);
 			}
 			if (armControl.GetRawButton(2))
@@ -805,11 +842,11 @@ void OperatorControl(void) {
 			}
 		}
 
-		if (liftA.Get() == true && liftB.Get() == false)
+		if (liftA.Get() == false && liftB.Get() == true)
 		{
 			if(armControl.GetRawButton(9))
 			{
-				tiltA.Set(true);
+				tiltA.Set(true); //Tilt extends when button 9 is pressed and lift is retracted.
 				tiltB.Set(false);
 			}
 			else if (armControl.GetRawButton(8))
@@ -818,10 +855,10 @@ void OperatorControl(void) {
 				tiltB.Set(true);
 			}
 		}
-		
+
 		if (armControl.GetRawButton(1))
 		{
-			clampA.Set(true);
+			clampA.Set(true); //Clamp opens when button 1 is pressed.
 			clampB.Set(false);
 		}
 		else
