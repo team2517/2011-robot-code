@@ -101,6 +101,14 @@ public:
 		frontLeftJag.Set(0);
 		backRightJag.Set(0);
 		backLeftJag.Set(0);
+		
+		//Starting position for arm.
+		tiltA.Set(false);
+		tiltB.Set(true);
+		liftA.Set(true);
+		liftB.Set(false);
+		clampA.Set(false);
+		clampB.Set(true);
 
 		while (wallSensor.GetRangeMM()> 500) { //This causes robot to stop when it gets within .5
 			//meters from the wall.
@@ -406,8 +414,11 @@ public:
 	frontRightJag.Set(0);
 	backLeftJag.Set(0);
 	backRightJag.Set(0);
-
-	//todo: Arm stuff goes here.
+	
+	liftA.Set(false); //Lower second joint of arm.
+	liftB.Set(true);
+	clampA.Set(true); //Release clamp.
+	clampB.Set(false);
 
 }
 
@@ -436,12 +447,9 @@ void OperatorControl(void) {
 	float hori1 = 0; //Create and set raw controller outputs to zero.
 	float vert1 = 0;
 	float hori2 = 0;
-
-	//todo: Set starting position
-	tiltA.Set(true);
-	tiltB.Set(false);
-	clampA.Set(false);
-	clampB.Set(true);
+	
+	bool liftok = CAN_LIFT;
+	bool tiltok = CAN_TILT;
 
 	while (IsOperatorControl()) {
 		Watchdog().Feed();
@@ -830,29 +838,33 @@ void OperatorControl(void) {
 		//Arm Control
 		if (tiltA.Get() == false && tiltB.Get() == true)
 		{
-			if (armControl.GetRawButton(3))
+			if (armControl.GetRawButton(3) && liftok)
 			{
 				liftA.Set(true); //Lift extends when button 3 is pressed and tilt is retracted.
 				liftB.Set(false);
+				tiltok = NO_TILT;
 			}
 			if (armControl.GetRawButton(2))
 			{
 				liftA.Set(false);
 				liftB.Set(true);
+				tiltok = CAN_TILT;
 			}
 		}
 
 		if (liftA.Get() == false && liftB.Get() == true)
 		{
-			if(armControl.GetRawButton(9))
+			if(armControl.GetRawButton(9) && tiltok)
 			{
-				tiltA.Set(true); //Tilt extends when button 9 is pressed and lift is retracted.
+				tiltA.Set(true); //Tilt retracts when button 9 is pressed and lift is retracted.
 				tiltB.Set(false);
+				liftok = NO_LIFT;
 			}
 			else if (armControl.GetRawButton(8))
 			{
 				tiltA.Set(false);
 				tiltB.Set(true);
+				liftok = CAN_LIFT;
 			}
 		}
 
