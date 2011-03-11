@@ -74,6 +74,8 @@ public:
 
 	void Autonomous(void) {
 
+                                //todo: Add tiltok and liftok to autonomous?
+
 		float a = 0; //Creats and sets final motor output to zero.
 		float b = 0;
 		float c = 0;
@@ -841,7 +843,7 @@ void OperatorControl(void) {
 			if (armControl.GetRawButton(3) && liftok)
 			{
 				liftA.Set(true); //Lift extends when button 3 is pressed and tilt is retracted.
-				liftB.Set(false);
+				liftB.Set(false);  //todo: Modify for mid lift pressing of buttons.
 				tiltok = NO_TILT;
 			}
 			if (armControl.GetRawButton(2))
@@ -857,12 +859,12 @@ void OperatorControl(void) {
 			if(armControl.GetRawButton(9) && tiltok)
 			{
 				tiltA.Set(true); //Tilt retracts when button 9 is pressed and lift is retracted.
-				tiltB.Set(false);
+				tiltB.Set(false); //todo: Double check the location of the tilt pneumatic.
 				liftok = NO_LIFT;
 			}
 			else if (armControl.GetRawButton(8))
 			{
-				tiltA.Set(false);
+				tiltA.Set(false); //todo: Modify for mid tilt pressing of buttons.
 				tiltB.Set(true);
 				liftok = CAN_LIFT;
 			}
