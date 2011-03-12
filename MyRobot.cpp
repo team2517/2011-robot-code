@@ -54,7 +54,7 @@ public:
 				backRightJag(4), backLeftJag(1), lightSensorLeft(1),
 				lightSensorMiddle(2), lightSensorRight(3), dds(),
 				lt_state(LT_FIND_LINE), lineParallel(1), wallSensor(5, 4),
-				miniA(1), miniB(2), tiltA(3), tiltB(4), liftA(5), liftB(6),
+				miniA(1), tiltA(3), tiltB(4), liftA(5), liftB(6),
 				clampA(7), clampB(8), compress1(6, 1)
 
 	/* Joysticks (USB port)
@@ -830,19 +830,19 @@ void OperatorControl(void) {
 		//Minibot Deployment
 		if (armControl.GetRawButton(6))
 		{
-			miniA.Set(true); 
+			miniA.Set(true); //Deploy Minibot
 		}
 
 		//Arm Control
 		if (tiltA.Get() == false && tiltB.Get() == true)
 		{
-			if (armControl.GetRawButton(3) && liftok)
+			if (armControl.GetRawButton(3) && liftok)  //Lift Up/Extended
 			{
 				liftA.Set(true); //Lift extends when button 3 is pressed and tilt is retracted.
 				liftB.Set(false);  //todo: Modify for mid lift pressing of buttons.
 				tiltok = NO_TILT;
 			}
-			if (armControl.GetRawButton(2))
+			if (armControl.GetRawButton(2)) //Lift Down/Retracted
 			{
 				liftA.Set(false);
 				liftB.Set(true);
@@ -852,13 +852,13 @@ void OperatorControl(void) {
 
 		if (liftA.Get() == false && liftB.Get() == true)
 		{
-			if(armControl.GetRawButton(9) && tiltok)
+			if(armControl.GetRawButton(9) && tiltok) //Tilt Forward/Extended
 			{
 				tiltA.Set(true); //Tilt retracts when button 9 is pressed and lift is retracted.
 				tiltB.Set(false); //todo: Double check the location of the tilt pneumatic.
 				liftok = NO_LIFT;
 			}
-			else if (armControl.GetRawButton(8))
+			else if (armControl.GetRawButton(8)) //Tilt Backward/Retracted
 			{
 				tiltA.Set(false); //todo: Modify for mid tilt pressing of buttons.
 				tiltB.Set(true);
@@ -866,7 +866,7 @@ void OperatorControl(void) {
 			}
 		}
 
-		if (armControl.GetRawButton(1))
+		if (armControl.GetRawButton(1)) //Deploy Minibot/Extended
 		{
 			clampA.Set(true); //Clamp opens when button 1 is pressed.
 			clampB.Set(false);
