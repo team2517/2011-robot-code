@@ -33,7 +33,6 @@ class RobotDemo : public SimpleRobot {
 	Jaguar backRightJag;
 	Jaguar backLeftJag;
 	Solenoid miniA; //Minibot deployment pneumatic.
-	Solenoid miniB;
 	Solenoid tiltA; //Pneumatic at the base of the arm that controls tilt.
 	Solenoid tiltB;
 	Solenoid liftA; //The pneuamtic at the first joint that controls lift.
@@ -832,12 +831,6 @@ void OperatorControl(void) {
 		if (armControl.GetRawButton(6))
 		{
 			miniA.Set(true); 
-			miniB.Set(false);
-		}
-		else if(armControl.GetRawButton(7))
-		{
-			miniA.Set(false);
-			miniB.Set(true);
 		}
 
 		//Arm Control
