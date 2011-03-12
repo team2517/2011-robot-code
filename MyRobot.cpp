@@ -55,7 +55,7 @@ public:
 				backRightJag(4), backLeftJag(1), lightSensorLeft(1),
 				lightSensorMiddle(2), lightSensorRight(3), dds(),
 				lt_state(LT_FIND_LINE), lineParallel(1), wallSensor(5, 4),
-				miniA(5), miniB(6), tiltA(3), tiltB(4), liftA(1), liftB(2),
+				miniA(1), miniB(2), tiltA(3), tiltB(4), liftA(5), liftB(6),
 				clampA(7), clampB(8), compress1(6, 1)
 
 	/* Joysticks (USB port)
@@ -92,6 +92,14 @@ public:
 		float vert1 = 0;
 		float hori2 = 0;
 
+		//Starting position for arm.
+		tiltA.Set(false);
+		tiltB.Set(true);
+		liftA.Set(false);
+		liftB.Set(true);
+		clampA.Set(false);
+		clampB.Set(true);
+
 		frontRightJag.Set(.4); //Robot suddenly moves forward...
 		frontLeftJag.Set(-.4);
 		backRightJag.Set(.4);
@@ -103,15 +111,10 @@ public:
 		frontLeftJag.Set(0);
 		backRightJag.Set(0);
 		backLeftJag.Set(0);
-		
-		//Starting position for arm.
-		tiltA.Set(false);
-		tiltB.Set(true);
-		liftA.Set(true);
-		liftB.Set(false);
-		clampA.Set(false);
-		clampB.Set(true);
 
+                                liftA.Set(true);
+                                liftB.Set(false);
+		
 		while (wallSensor.GetRangeMM()> 500) { //This causes robot to stop when it gets within .5
 			//meters from the wall.
 
@@ -838,7 +841,7 @@ void OperatorControl(void) {
 		}
 
 		//Arm Control
-		if (tiltA.Get() == true && tiltB.Get() == false)
+		if (tiltA.Get() == false && tiltB.Get() == true)
 		{
 			if (armControl.GetRawButton(3) && liftok)
 			{
@@ -860,13 +863,13 @@ void OperatorControl(void) {
 			{
 				tiltA.Set(true); //Tilt retracts when button 9 is pressed and lift is retracted.
 				tiltB.Set(false); //todo: Double check the location of the tilt pneumatic.
-				liftok = CAN_LIFT;
+				liftok = NO_LIFT;
 			}
 			else if (armControl.GetRawButton(8))
 			{
 				tiltA.Set(false); //todo: Modify for mid tilt pressing of buttons.
 				tiltB.Set(true);
-				liftok = NO_LIFT;
+				liftok = CAN_LIFT;
 			}
 		}
 
