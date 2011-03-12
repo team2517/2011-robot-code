@@ -838,7 +838,7 @@ void OperatorControl(void) {
 		}
 
 		//Arm Control
-		if (tiltA.Get() == false && tiltB.Get() == true)
+		if (tiltA.Get() == true && tiltB.Get() == false)
 		{
 			if (armControl.GetRawButton(3) && liftok)
 			{
@@ -860,13 +860,13 @@ void OperatorControl(void) {
 			{
 				tiltA.Set(true); //Tilt retracts when button 9 is pressed and lift is retracted.
 				tiltB.Set(false); //todo: Double check the location of the tilt pneumatic.
-				liftok = NO_LIFT;
+				liftok = CAN_LIFT;
 			}
 			else if (armControl.GetRawButton(8))
 			{
 				tiltA.Set(false); //todo: Modify for mid tilt pressing of buttons.
 				tiltB.Set(true);
-				liftok = CAN_LIFT;
+				liftok = NO_LIFT;
 			}
 		}
 
