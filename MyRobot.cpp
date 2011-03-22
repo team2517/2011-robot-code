@@ -23,7 +23,6 @@
 #define LT_STRAFE_LEFT				1 //The robot needs to strafe left to follow the line.
 #define LT_STRAFE_RIGHT				2 //The robot needs to strafe right to find the line.
 #define LT_DRIVE_FORWARD			3 //The robot is centered on the line.
-
 class RobotDemo : public SimpleRobot {
 	Joystick driveControl; //The logitech dual stick
 	Joystick armControl; //
@@ -54,10 +53,10 @@ public:
 				backRightJag(4), backLeftJag(1), lightSensorLeft(1),
 				lightSensorMiddle(2), lightSensorRight(3), dds(),
 				lt_state(LT_FIND_LINE), lineParallel(1), wallSensor(5, 4),
-				miniA(1), tiltA(6), tiltB(7), liftA(4), liftB(5),
-				clampA(2), clampB(3), compress1(6, 1)
-				//Swapped tilt(2,3) and clamp (6,7)
-				
+				miniA(1), tiltA(6), tiltB(7), liftA(4), liftB(5), clampA(2),
+				clampB(3), compress1(6, 1)
+	//Swapped tilt(2,3) and clamp (6,7)
+
 
 	/* Joysticks (USB port)
 	 * Jaguars (PWM)
@@ -71,7 +70,7 @@ public:
 		Watchdog().SetExpiration(.75); //Set watchdog timer to .75 seconds.
 		wallSensor.SetAutomaticMode(true); //Start the wallSensor sending out sound automatically.
 		compress1.Start(); //Start compressor compressing.
-		
+
 		liftA.Set(true);
 		liftB.Set(false);
 		tiltA.Set(true);
@@ -109,7 +108,7 @@ public:
 		frontLeftJag.Set(0);
 		backRightJag.Set(0);
 		backLeftJag.Set(0);
-		
+
 		//Starting position for arm.
 		tiltA.Set(true);
 		tiltB.Set(false);
@@ -423,7 +422,7 @@ public:
 	frontRightJag.Set(0);
 	backLeftJag.Set(0);
 	backRightJag.Set(0);
-	
+
 	liftA.Set(true); //Lower second joint of arm.
 	liftB.Set(false);
 	clampA.Set(false); //Release clamp.
@@ -456,10 +455,10 @@ void OperatorControl(void) {
 	float hori1 = 0; //Create and set raw controller outputs to zero.
 	float vert1 = 0;
 	float hori2 = 0;
-	
+
 	bool liftok = CAN_LIFT;
 	bool tiltok = CAN_TILT;
-	
+
 	liftA.Set(true);
 	liftB.Set(false);
 	tiltA.Set(true);
@@ -840,7 +839,7 @@ void OperatorControl(void) {
 		//Minibot Deployment
 		if (armControl.GetRawButton(6))
 		{
-			miniA.Set(true); 
+			miniA.Set(true);
 		}
 		else if(armControl.GetRawButton(7))
 		{
