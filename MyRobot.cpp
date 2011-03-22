@@ -32,7 +32,7 @@ class RobotDemo : public SimpleRobot {
 	Jaguar frontLeftJag;
 	Jaguar backRightJag;
 	Jaguar backLeftJag;
-	Solenoid miniA; //Minibot deployment pneumatic.
+	Relay miniA; //Minibot deployment pneumatic.
 	Solenoid tiltA; //Pneumatic at the base of the arm that controls tilt.
 	Solenoid tiltB;
 	Solenoid liftA; //The pneuamtic at the first joint that controls lift.
@@ -54,7 +54,7 @@ public:
 				backRightJag(4), backLeftJag(1), lightSensorLeft(1),
 				lightSensorMiddle(2), lightSensorRight(3), dds(),
 				lt_state(LT_FIND_LINE), lineParallel(1), wallSensor(5, 4),
-				miniA(1), tiltA(6), tiltB(7), liftA(4), liftB(5),
+				miniA(2, Relay::kForwardOnly), tiltA(6), tiltB(7), liftA(4), liftB(5),
 				clampA(2), clampB(3), compress1(6, 1)
 				//Swapped tilt(2,3) and clamp (6,7)
 				
@@ -838,11 +838,11 @@ void OperatorControl(void) {
 		//Minibot Deployment
 		if (armControl.GetRawButton(6))
 		{
-			miniA.Set(true); 
+			miniA.Set(Relay::kOn); 
 		}
 		else if(armControl.GetRawButton(7))
 		{
-			miniA.Set(false);
+			miniA.Set(Relay::kOff);
 		}
 
 		//Arm Control
