@@ -1,4 +1,4 @@
-#include "WPILib.h"
+#include "WPILib.h"o
 #include "Target.h"
 #include "DashboardDataSender.h"
 
@@ -11,7 +11,7 @@
 #define CAN_LIFT 			true //The lift can move legally.
 #define NO_LIFT 			false//The lift can't move legally.
 #define CAN_TILT			true //The tilt can move legaly.
-#define NO_TILT				false//The tilt can't move legaly
+#define NO_TILT				false//The tilt can't move legaly.
 // Joystick constants
 #define LEFT_STICK_X				1
 #define LEFT_STICK_Y				2
@@ -33,7 +33,6 @@ class RobotDemo : public SimpleRobot {
 	Jaguar backRightJag;
 	Jaguar backLeftJag;
 	Solenoid miniA; //Minibot deployment pneumatic.
-	Solenoid miniB;
 	Solenoid tiltA; //Pneumatic at the base of the arm that controls tilt.
 	Solenoid tiltB;
 	Solenoid liftA; //The pneuamtic at the first joint that controls lift.
@@ -55,8 +54,10 @@ public:
 				backRightJag(4), backLeftJag(1), lightSensorLeft(1),
 				lightSensorMiddle(2), lightSensorRight(3), dds(),
 				lt_state(LT_FIND_LINE), lineParallel(1), wallSensor(5, 4),
-				miniA(5), miniB(6), tiltA(3), tiltB(4), liftA(1), liftB(2),
-				clampA(7), clampB(8), compress1(6, 1)
+				miniA(1), tiltA(6), tiltB(7), liftA(4), liftB(5),
+				clampA(2), clampB(3), compress1(6, 1)
+				//Swapped tilt(2,3) and clamp (6,7)
+				
 
 	/* Joysticks (USB port)
 	 * Jaguars (PWM)
@@ -70,10 +71,15 @@ public:
 		Watchdog().SetExpiration(.75); //Set watchdog timer to .75 seconds.
 		wallSensor.SetAutomaticMode(true); //Start the wallSensor sending out sound automatically.
 		compress1.Start(); //Start compressor compressing.
+		
+		liftA.Set(true);
+		liftB.Set(false);
+		tiltA.Set(true);
+		tiltB.Set(false);
 	}
 
 	void Autonomous(void) {
-
+/*
 		float a = 0; //Creats and sets final motor output to zero.
 		float b = 0;
 		float c = 0;
@@ -105,10 +111,11 @@ public:
 		//Starting position for arm.
 		tiltA.Set(false);
 		tiltB.Set(true);
-		liftA.Set(true);
-		liftB.Set(false);
+		liftA.Set(false);
+		liftB.Set(true);
 		clampA.Set(false);
 		clampB.Set(true);
+		miniA.Set(false);
 
 		while (wallSensor.GetRangeMM()> 500) { //This causes robot to stop when it gets within .5
 			//meters from the wall.
@@ -325,7 +332,7 @@ public:
 				c = (-(x*x)+(z*z))/(x+z);
 				d = (-(x*x)+(z*z))/(x+z);
 			}
-		}
+		}//
 		//Strafe Left
 		else if (x < 0 && y == 0)
 		{
@@ -419,7 +426,7 @@ public:
 	liftB.Set(true);
 	clampA.Set(true); //Release clamp.
 	clampB.Set(false);
-
+*/
 }
 
 void OperatorControl(void) {
@@ -450,6 +457,11 @@ void OperatorControl(void) {
 	
 	bool liftok = CAN_LIFT;
 	bool tiltok = CAN_TILT;
+	
+	liftA.Set(true);
+	liftB.Set(false);
+	tiltA.Set(true);
+	tiltB.Set(false);
 
 	while (IsOperatorControl()) {
 		Watchdog().Feed();
@@ -827,56 +839,54 @@ void OperatorControl(void) {
 		if (armControl.GetRawButton(6))
 		{
 			miniA.Set(true); 
-			miniB.Set(false);
 		}
 		else if(armControl.GetRawButton(7))
 		{
 			miniA.Set(false);
-			miniB.Set(true);
 		}
 
 		//Arm Control
-		if (tiltA.Get() == false && tiltB.Get() == true)
+		if (tiltA.Get() == true && tiltB.Get() == false)
 		{
 			if (armControl.GetRawButton(3) && liftok)
 			{
-				liftA.Set(true); //Lift extends when button 3 is pressed and tilt is retracted.
-				liftB.Set(false);
+				liftA.Set(false); //Lift extends when button 3 is pressed and tilt is retracted.
+				liftB.Set(true);
 				tiltok = NO_TILT;
 			}
 			if (armControl.GetRawButton(2))
 			{
-				liftA.Set(false);
-				liftB.Set(true);
+				liftA.Set(true);
+				liftB.Set(false);
 				tiltok = CAN_TILT;
 			}
 		}
 
-		if (liftA.Get() == false && liftB.Get() == true)
+		if (liftA.Get() == true && liftB.Get() == false)
 		{
 			if(armControl.GetRawButton(9) && tiltok)
 			{
-				tiltA.Set(true); //Tilt retracts when button 9 is pressed and lift is retracted.
-				tiltB.Set(false);
+				tiltA.Set(false); //Tilt retracts when button 9 is pressed and lift is retracted.
+				tiltB.Set(true);
 				liftok = NO_LIFT;
 			}
 			else if (armControl.GetRawButton(8))
 			{
-				tiltA.Set(false);
-				tiltB.Set(true);
+				tiltA.Set(true);
+				tiltB.Set(false);
 				liftok = CAN_LIFT;
 			}
 		}
 
 		if (armControl.GetRawButton(1))
 		{
-			clampA.Set(true); //Clamp opens when button 1 is pressed.
-			clampB.Set(false);
+			clampA.Set(false); //Clamp opens when button 1 is pressed.
+			clampB.Set(true);
 		}
 		else
 		{
-			clampA.Set(false);
-			clampB.Set(true);
+			clampA.Set(true);
+			clampB.Set(false);
 		}
 
 	}
