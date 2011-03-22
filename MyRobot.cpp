@@ -1,4 +1,4 @@
-#include "WPILib.h"o
+#include "WPILib.h"
 #include "Target.h"
 #include "DashboardDataSender.h"
 
@@ -76,11 +76,13 @@ public:
 		liftB.Set(false);
 		tiltA.Set(true);
 		tiltB.Set(false);
+		clampA.Set(true);
+		clampB.Set(false);
 	}
 
 	void Autonomous(void) {
-/*
-		float a = 0; //Creats and sets final motor output to zero.
+
+		float a = 0; //Creats and sewwts final motor output to zero.
 		float b = 0;
 		float c = 0;
 		float d = 0;
@@ -109,8 +111,8 @@ public:
 		backLeftJag.Set(0);
 		
 		//Starting position for arm.
-		tiltA.Set(false);
-		tiltB.Set(true);
+		tiltA.Set(true);
+		tiltB.Set(false);
 		liftA.Set(false);
 		liftB.Set(true);
 		clampA.Set(false);
@@ -422,11 +424,11 @@ public:
 	backLeftJag.Set(0);
 	backRightJag.Set(0);
 	
-	liftA.Set(false); //Lower second joint of arm.
-	liftB.Set(true);
-	clampA.Set(true); //Release clamp.
-	clampB.Set(false);
-*/
+	liftA.Set(true); //Lower second joint of arm.
+	liftB.Set(false);
+	clampA.Set(false); //Release clamp.
+	clampB.Set(true);
+
 }
 
 void OperatorControl(void) {
