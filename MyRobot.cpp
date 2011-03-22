@@ -36,6 +36,7 @@ class RobotDemo : public SimpleRobot {
 	Solenoid tiltB;
 	Solenoid liftA; //The pneuamtic at the first joint that controls lift.
 	Solenoid liftB;
+	Relay liftHold;
 	Solenoid clampA; //The pneumatic at the end of the arm that controls the clamp.
 	Solenoid clampB;
 	Compressor compress1; //The one and only air compressor.
@@ -54,7 +55,8 @@ public:
 				lightSensorMiddle(2), lightSensorRight(3), dds(),
 				lt_state(LT_FIND_LINE), lineParallel(1), wallSensor(5, 4),
 				miniA(2, Relay::kForwardOnly), tiltA(6), tiltB(7), liftA(4),
-				liftB(5), clampA(2), clampB(3), compress1(6, 1)
+				liftB(5), liftHold(3, Relay::kForwardOnly), clampA(2),
+				clampB(3), compress1(6, 1)
 	//Swapped tilt(2,3) and clamp (6,7)
 
 
@@ -675,7 +677,7 @@ public:
 					d = (-(x*x)+(y*y)+(z*z))/(x+y+z);
 				}
 				//Back Left Quadrant
-			} else if (x < 0 && y> 0){ 
+			} else if (x < 0 && y> 0){
 
 			if (z> 0) {
 				a = (-(x*x)-(y*y)+(z*z))/(-x+y+z);
