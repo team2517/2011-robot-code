@@ -34,6 +34,7 @@ class RobotDemo : public SimpleRobot {
 	Relay miniA; //Minibot deployment pneumatic.
 	Solenoid tiltA; //Pneumatic at the base of the arm that controls tilt.
 	Solenoid tiltB;
+	Relay tiltHold;
 	Solenoid liftA; //The pneuamtic at the first joint that controls lift.
 	Solenoid liftB;
 	Relay liftHold;
@@ -54,9 +55,10 @@ public:
 				backRightJag(4), backLeftJag(1), lightSensorLeft(1),
 				lightSensorMiddle(2), lightSensorRight(3), dds(),
 				lt_state(LT_FIND_LINE), lineParallel(1), wallSensor(5, 4),
-				miniA(2, Relay::kForwardOnly), tiltA(6), tiltB(7), liftA(4),
-				liftB(5), liftHold(3, Relay::kForwardOnly), clampA(2),
-				clampB(3), compress1(6, 1)
+				miniA(2, Relay::kForwardOnly),
+				liftHold(4, Relay::kForwardOnly), tiltHold(3,
+						Relay::kForwardOnly), tiltA(6), tiltB(7), liftA(4),
+				liftB(5), clampA(2), clampB(3), compress1(6, 1)
 	//Swapped tilt(2,3) and clamp (6,7)
 
 
@@ -77,6 +79,9 @@ public:
 		liftB.Set(false);
 		tiltA.Set(true);
 		tiltB.Set(false);
+		miniA.Set(Relay::kOff);
+		liftHold.Set(Relay::kOff);
+		tiltHold.Set(Relay::kOff);
 	}
 
 	void Autonomous(void) {
@@ -86,8 +91,8 @@ public:
 		 float c = 0;
 		 float d = 0;
 
-		 float rotation = 0; //Creates and sets degrees in rotation to zero.
-		 lineParallel.Reset(); //Sets current gyro direction to zero.
+		 //float rotation = 0; //Creates and sets degrees in rotation to zero.
+		 //lineParallel.Reset(); //Sets current gyro direction to zero.
 
 		 float x; //Creates semiprocessessed, slow accelerating variable.
 		 float y; // 
@@ -97,26 +102,28 @@ public:
 		 float vert1 = 0;
 		 float hori2 = 0;
 
-		 frontRightJag.Set(.4); //Robot suddenly moves forward...
-		 frontLeftJag.Set(-.4);
-		 backRightJag.Set(.4);
-		 backLeftJag.Set(-.4);
+		 frontRightJag.Set(-.4); //Robot suddenly moves forward...
+		 frontLeftJag.Set(.4);
+		 backRightJag.Set(-.4);
+		 backLeftJag.Set(.4);
 
-		 Wait(.25); // ...for a quarter of a second...
+		 Wait(.75); // ...for a quarter of a second...
 
 		 frontRightJag.Set(0); // ...and stops suddenly.
 		 frontLeftJag.Set(0);
 		 backRightJag.Set(0);
 		 backLeftJag.Set(0);
-		 
+
+		 Wait(.25);
+
 		 //Starting position for arm.
-		 tiltA.Set(false);
-		 tiltB.Set(true);
+		 tiltA.Set(true);
+		 tiltB.Set(false);
 		 liftA.Set(false);
 		 liftB.Set(true);
-		 clampA.Set(false);
-		 clampB.Set(true);
-		 miniA.Set(false);
+		 clampA.Set(true);
+		 clampB.Set(false);
+		 miniA.Set(Relay::kOff);
 
 		 while (wallSensor.GetRangeMM()> 500) { //This causes robot to stop when it gets within .5
 		 //meters from the wall.
@@ -130,23 +137,26 @@ public:
 		 c = 0;
 		 d = 0;
 
-		 rotation = fmod(lineParallel.GetAngle(), 360.0); //Since rotating 360 degrees leaves you 
+		 miniA.Set(Relay::kOff);
+
+		 //rotation = fmod(lineParallel.GetAngle(), 360.0); //Since rotating 360 degrees leaves you 
 		 //facing the same direction,
 		 //we just need the remainder.
 		 //Causes the robot to rotate the other direction if the robot has rotated over 180 degrees
 		 //in the previous direction.
-		 if (rotation>180) {
-		 rotation-=360;
-		 } else if (rotation<-180) {
-		 rotation+=360;
-		 }
+		 //if (rotation>180) {
+		 //rotation-=360;
+		 //} else if (rotation<-180) {
+		 //rotation+=360;
+		 //}
+
 		 //Modifies raw controller outputs to rotate starting fast and then slowing for accuracy.
-		 if (rotation < 0) {
-		 hori2 += -.20 + .55 * (rotation / 360);
-		 }
-		 if (rotation> 0) {
-		 hori2 += .20 +.55 * (rotation / 360);
-		 }
+		 //if (rotation < 0) {
+		 //hori2 += -.20 + .55 * (rotation / 360);
+		 //}
+		 //if (rotation> 0) {
+		 //hori2 += .20 +.55 * (rotation / 360);
+		 //}
 
 		 switch (lt_state) {
 		 case LT_FIND_LINE: { //If robot has no idea where line is.
@@ -422,11 +432,26 @@ public:
 		 frontRightJag.Set(0);
 		 backLeftJag.Set(0);
 		 backRightJag.Set(0);
+
+		 liftA.Set(true); //Lower second joint of arm.
+		 liftB.Set(false);
+		 clampA.Set(false); //Release clamp.
+		 clampB.Set(true);
+
+		 Wait(.1);
+
+		 frontRightJag.Set(.4);
+		 frontLeftJag.Set(-.4);
+		 backRightJag.Set(.4);
+		 backLeftJag.Set(-.4);
+
+		 Wait(.5);
+
+		 frontRightJag.Set(0);
+		 frontLeftJag.Set(0);
+		 backRightJag.Set(0);
+		 backLeftJag.Set(0);
 		 
-		 liftA.Set(false); //Lower second joint of arm.
-		 liftB.Set(true);
-		 clampA.Set(true); //Release clamp.
-		 clampB.Set(false);
 		 */
 	}
 
@@ -463,6 +488,7 @@ public:
 		liftB.Set(false);
 		tiltA.Set(true);
 		tiltB.Set(false);
+		miniA.Set(Relay::kOn);
 
 		while (IsOperatorControl()) {
 			Watchdog().Feed();
@@ -514,7 +540,7 @@ public:
 					hori2 += .20 +.55 * (rotation / 360);
 				}
 			}
-
+			printf("%f\n", lightSensorLeft.Get());
 			if (driveControl.GetRawButton(6)) {
 				//Enabe line tracking when button six is pressed.
 				switch (lt_state) {
@@ -569,10 +595,6 @@ public:
 					} else if (lightSensorRight.Get() == SENSOR_SEES_LINE) { //Wait for right sensor to
 						//see line.
 						//Robot is slightly to the left of line.
-						lt_state = LT_STRAFE_RIGHT;
-					} else if (lightSensorMiddle.Get() == SENSOR_NO_LINE) //Wait for middle sensor to 
-					//lose the line.
-					{
 						lt_state = LT_STRAFE_RIGHT;
 					}
 				}
@@ -812,7 +834,7 @@ public:
 		{
 			miniA.Set(Relay::kOn);
 		}
-		else if(armControl.GetRawButton(7))
+		else
 		{
 			miniA.Set(Relay::kOff);
 		}
@@ -826,7 +848,7 @@ public:
 				liftB.Set(true);
 				tiltok = NO_TILT;
 			}
-			if (armControl.GetRawButton(2))
+			else if (armControl.GetRawButton(2))
 			{
 				liftA.Set(true);
 				liftB.Set(false);
@@ -854,6 +876,7 @@ public:
 		{
 			clampA.Set(false); //Clamp opens when button 1 is pressed.
 			clampB.Set(true);
+			tiltHold.Set(Relay::kOn);
 		}
 		else
 		{
